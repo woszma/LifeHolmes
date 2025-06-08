@@ -14,22 +14,11 @@ export default defineConfig({
       }
     })
   ],
-  base: './',
+  base: '/LifeHolmes/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
-    sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: './index.html'
-      },
-      output: {
-        format: 'es',
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
-    }
+    sourcemap: true
   }
 })
