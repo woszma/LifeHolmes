@@ -1,12 +1,20 @@
-# React + Vite
+# 人生 RPG 遊戲
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+這是一個基於 React 和 Vite 開發的人生模擬遊戲。
 
-Currently, two official plugins are available:
+## 遊戲特點
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 模擬人生選擇
+- 多種教育路徑
+- 互動式遊戲體驗
+- 即時狀態更新
 
-## Expanding the ESLint configuration
+## 如何遊玩
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+訪問 https://woszma.github.io/LifeHolmes/ 開始遊戲。
+
+## 技術棧
+
+- React
+- Vite
+- GitHub Pages
