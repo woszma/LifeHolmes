@@ -23,11 +23,43 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Debug - List files
+        run: |
+          echo "Current directory contents:"
+          ls -la
+          echo "Node version:"
+          node --version
+          echo "NPM version:"
+          npm --version
+
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm list --depth=0
+
+      - name: Debug - Check package.json
+        run: |
+          echo "Package.json contents:"
+          cat package.json
 
       - name: Build
-        run: npm run build
+        run: |
+          echo "Starting build process..."
+          npm run build
+          echo "Build completed. Contents of dist directory:"
+          ls -la dist/
+        env:
+          NODE_ENV: production
+          CI: false
+
+      - name: Debug - Check dist contents
+        run: |
+          echo "Contents of dist directory:"
+          ls -la dist/
+          echo "Contents of dist/assets directory:"
+          ls -la dist/assets/
+          echo "Contents of index.html:"
+          cat dist/index.html
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
