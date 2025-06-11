@@ -18,8 +18,8 @@ function StatusPanel({ players, history, currentPlayer, onSelectPlayer, onUnsele
           }}
         >
           <strong>{player.name}</strong><br />
-          金錢：{player.money}<br />
-          戰鬥力：{player.power}(初始戰鬥力:{player.initialPower ?? player.power})<br />
+          初始金錢：{player.money}｜初始戰鬥力：{player.initialPower ?? player.power}<br />
+          當前戰鬥力：{player.power}<br />
           <div style={{ fontSize: '0.9em', color: '#888' }}>
             已選項目：
             <ul style={{ margin: 0, paddingLeft: 18 }}>

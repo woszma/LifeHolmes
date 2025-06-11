@@ -18,6 +18,14 @@ const THEME_COLORS = [
   '#F4511E', // 深橙
 ];
 
+const DEFAULT_PLAYERS = [
+  { name: '小明', money: 8000, power: 100 },
+  { name: '小華', money: 12000, power: 85 },
+  { name: '小美', money: 15000, power: 95 },
+  { name: '小強', money: 10000, power: 90 },
+  { name: '小芳', money: 18000, power: 80 }
+];
+
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -30,9 +38,7 @@ function getRandomMoney() {
 }
 
 function CharacterSetup({ onStart }) {
-  const [players, setPlayers] = useState([
-    { name: '', money: DEFAULT_MONEY, power: DEFAULT_POWER }
-  ]);
+  const [players, setPlayers] = useState(DEFAULT_PLAYERS);
 
   const handleChange = (idx, field, value) => {
     const newPlayers = [...players];
@@ -42,6 +48,12 @@ function CharacterSetup({ onStart }) {
 
   const addPlayer = () => {
     setPlayers([...players, { name: '', money: DEFAULT_MONEY, power: DEFAULT_POWER }]);
+  };
+
+  const removePlayer = (idx) => {
+    if (players.length > 1) {
+      setPlayers(players.filter((_, i) => i !== idx));
+    }
   };
 
   const randomize = (idx) => {
@@ -71,46 +83,91 @@ function CharacterSetup({ onStart }) {
       <h2>建立你的角色（可多位玩家）</h2>
       <form onSubmit={handleSubmit}>
         {players.map((player, idx) => (
-          <div key={idx} style={{ marginBottom: '1em', border: '1px solid #eee', padding: '1em', borderRadius: '8px' }}>
-            <label>
-              玩家 {idx + 1} 名稱：
-              <input
-                type="text"
-                value={player.name}
-                onChange={e => handleChange(idx, 'name', e.target.value)}
-                placeholder="請輸入角色名稱"
-                required
-                style={{ marginRight: '1em' }}
-              />
-            </label>
-            <label style={{ marginLeft: '1em' }}>
-              金錢：
-              <input
-                type="number"
-                min={MIN_MONEY}
-                max={MAX_MONEY}
-                step={100}
-                value={player.money}
-                onChange={e => handleChange(idx, 'money', e.target.value)}
-                required
-                style={{ width: '100px', marginRight: '1em' }}
-              />
-            </label>
-            <label style={{ marginLeft: '1em' }}>
-              戰鬥力：
-              <input
-                type="number"
-                min={MIN_POWER}
-                max={MAX_POWER}
-                value={player.power}
-                onChange={e => handleChange(idx, 'power', e.target.value)}
-                required
-                style={{ width: '60px', marginRight: '1em' }}
-              />
-            </label>
-            <button type="button" onClick={() => randomize(idx)} style={{ marginLeft: '1em' }}>
-              隨機產生
-            </button>
+          <div key={idx} style={{ 
+            marginBottom: '1em', 
+            border: '1px solid #eee', 
+            padding: '1em', 
+            borderRadius: '8px',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5em'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '0.5em'
+            }}>
+              <label style={{ flex: 1 }}>
+                玩家 {idx + 1} 名稱：
+                <input
+                  type="text"
+                  value={player.name}
+                  onChange={e => handleChange(idx, 'name', e.target.value)}
+                  placeholder="請輸入角色名稱"
+                  required
+                  style={{ marginRight: '1em' }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => removePlayer(idx)}
+                style={{
+                  background: '#ff4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  cursor: 'pointer',
+                  display: players.length > 1 ? 'block' : 'none',
+                  marginLeft: '1em'
+                }}
+              >
+                移除
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
+              <label>
+                金錢：
+                <input
+                  type="number"
+                  min={MIN_MONEY}
+                  max={MAX_MONEY}
+                  step={100}
+                  value={player.money}
+                  onChange={e => handleChange(idx, 'money', e.target.value)}
+                  required
+                  style={{ width: '100px', marginRight: '1em' }}
+                />
+              </label>
+              <label>
+                戰鬥力：
+                <input
+                  type="number"
+                  min={MIN_POWER}
+                  max={MAX_POWER}
+                  value={player.power}
+                  onChange={e => handleChange(idx, 'power', e.target.value)}
+                  required
+                  style={{ width: '60px', marginRight: '1em' }}
+                />
+              </label>
+              <button 
+                type="button" 
+                onClick={() => randomize(idx)}
+                style={{
+                  background: '#2196F3',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  cursor: 'pointer'
+                }}
+              >
+                隨機產生
+              </button>
+            </div>
           </div>
         ))}
         <button type="button" onClick={addPlayer} style={{ marginRight: '1em' }}>
