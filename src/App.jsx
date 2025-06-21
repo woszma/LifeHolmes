@@ -133,34 +133,13 @@ function App() {
 
   const handleGameOver = () => setGameOver(true)
 
-  // 計算進度條百分比
-  const totalRounds = 10; // 你可以根據遊戲邏輯調整總回合數
-  const progressPercent = Math.min((currentRound / totalRounds) * 100, 100);
-
   return (
     <div className="App">
       <h1>人生 RPG 遊戲</h1>
       {players && !gameOver && (
         <div style={{ width: '100%', maxWidth: 800, margin: '0 auto 1em auto', padding: '0 1em' }}>
-          <div style={{ marginBottom: 6, fontWeight: 500, color: '#1976d2', fontSize: '1.1em' }}>
-            回合進度：第 {currentRound} / {totalRounds} 回合
-          </div>
-          <div style={{
-            width: '100%',
-            height: 16,
-            background: '#e3eafc',
-            borderRadius: 8,
-            overflow: 'hidden',
-            boxShadow: '0 1px 4px #0001',
-            marginBottom: 16
-          }}>
-            <div style={{
-              width: `${progressPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #42a5f5 60%, #1976d2 100%)',
-              transition: 'width 0.4s',
-              borderRadius: 8
-            }} />
+          <div style={{ marginBottom: 16, fontWeight: 500, color: '#1976d2', fontSize: '1.1em' }}>
+            第 {currentRound} 回合
           </div>
           <button
             onClick={() => setShowTableSelect(true)}
