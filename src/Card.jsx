@@ -1,4 +1,4 @@
-function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, completed, quotaInfo }) {
+function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, completed, quotaInfo, onEdit }) {
   const quota = card.quota;
   const selectedPlayers = quotaInfo?.selectedPlayers || card.selectedPlayers || [];
   const quotaLeft = quota ? quota - selectedPlayers.length : null;
@@ -14,6 +14,28 @@ function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, compl
       opacity: locked || isQuotaFull ? 0.6 : 1,
       position: 'relative'
     }}>
+      {onEdit && (
+        <button
+          onClick={() => onEdit(card)}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            background: '#ff9800',
+            color: 'white',
+            border: 'none',
+            borderRadius: 4,
+            padding: '4px 8px',
+            fontSize: '0.8em',
+            cursor: 'pointer',
+            zIndex: 10
+          }}
+          title="編輯事件"
+        >
+          ✏️
+        </button>
+      )}
+      
       <h3 style={{ marginBottom: 8 }}>{card.name}</h3>
       <p>費用：{card.cost}</p>
       <p>戰鬥力倍率：x{card.multiplier}</p>
@@ -42,7 +64,7 @@ function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, compl
         <div style={{
           position: 'absolute',
           top: 8,
-          right: 8,
+          right: onEdit ? 40 : 8,
           background: '#43a047',
           color: 'white',
           borderRadius: 12,

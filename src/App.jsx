@@ -6,31 +6,32 @@ import GameResult from "./GameResult";
 import PowerTrendChart from "./PowerTrendChart";
 import RoundSummary from "./RoundSummary";
 import TableSelectModal from './TableSelectModal';
+import EventEditor from './EventEditor';
 import "./App.css";
 
 const sampleCards = [
   // 連續事件：教育路徑
-  { name: '名牌小學', type: 'chain', group: '小學', order: 1, prerequisite: null, cost: 500, multiplier: 1.4, condition: '父或母為專業生優先' },
-  { name: '一般小學', type: 'chain', group: '小學', order: 1, prerequisite: null, cost: 500, multiplier: 1.3 },
-  { name: '名牌中學', type: 'chain', group: '中學', order: 2, prerequisite: '小學', cost: 500, multiplier: 1.4, condition: '須小學畢業、名牌小學畢業生優先' },
-  { name: '一般中學', type: 'chain', group: '中學', order: 2, prerequisite: '小學', cost: 500, multiplier: 1.3, condition: '須小學畢業' },
-  { name: '中學文憑試', type: 'chain', group: '中學文憑試', order: 3, prerequisite: '中學', cost: 500, multiplier: 1.1, condition: '須中學畢業，於30分鐘後執行，請交考試費及領取推薦證' },
-  { name: '資助大學學士', type: 'chain', group: '大學', order: 4, prerequisite: '中學文憑試', cost: 500, multiplier: 2.0, condition: '須文憑試合格' },
-  { name: '是旦福大學學士', type: 'chain', group: '大學', order: 4, prerequisite: '中學', cost: 3000, multiplier: 2.2, condition: '須文憑試合格或「捐款」或有海外交流經驗' },
-  { name: "Half,Yellow, 惡忠怨、廢煙理工、Don't傾大學學士", type: 'chain', group: '大學', order: 4, prerequisite: '中學', cost: 2000, multiplier: 2.2, condition: '父或母有海外護照，文憑試不合格，預備班學費2000' },
+  { id: 1, name: '名牌小學', type: 'chain', group: '小學', order: 1, prerequisite: null, cost: 500, multiplier: 1.4, condition: '父或母為專業生優先' },
+  { id: 2, name: '一般小學', type: 'chain', group: '小學', order: 1, prerequisite: null, cost: 500, multiplier: 1.3 },
+  { id: 3, name: '名牌中學', type: 'chain', group: '中學', order: 2, prerequisite: '小學', cost: 500, multiplier: 1.4, condition: '須小學畢業、名牌小學畢業生優先' },
+  { id: 4, name: '一般中學', type: 'chain', group: '中學', order: 2, prerequisite: '小學', cost: 500, multiplier: 1.3, condition: '須小學畢業' },
+  { id: 5, name: '中學文憑試', type: 'chain', group: '中學文憑試', order: 3, prerequisite: '中學', cost: 500, multiplier: 1.1, condition: '須中學畢業，於30分鐘後執行，請交考試費及領取推薦證' },
+  { id: 6, name: '資助大學學士', type: 'chain', group: '大學', order: 4, prerequisite: '中學文憑試', cost: 500, multiplier: 2.0, condition: '須文憑試合格' },
+  { id: 7, name: '是旦福大學學士', type: 'chain', group: '大學', order: 4, prerequisite: '中學', cost: 3000, multiplier: 2.2, condition: '須文憑試合格或「捐款」或有海外交流經驗' },
+  { id: 8, name: "Half,Yellow, 惡忠怨、廢煙理工、Don't傾大學學士", type: 'chain', group: '大學', order: 4, prerequisite: '中學', cost: 2000, multiplier: 2.2, condition: '父或母有海外護照，文憑試不合格，預備班學費2000' },
   // 非連續事件
-  { name: '明愛補習社', type: 'single', group: '補習', cost: 1000, multiplier: 1.4, condition: '考試後，海關有可能會隨機抽查一人查問' },
-  { name: '明愛補習社優質內部影片流出', type: 'single', group: '補習', cost: 200, multiplier: 1.4, condition: '如發現非法下載，留案底' },
-  { name: '電腦/寬頻/手機電話', type: 'single', group: '設備', cost: 1000, multiplier: 1.4 },
-  { name: '流動數據', type: 'single', group: '設備', cost: 500, multiplier: 1.2 },
-  { name: '體育', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-  { name: '藝術', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-  { name: '學術', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-  { name: '社會運動', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-  { name: '義工服務', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-  { name: '海外交換生計劃', type: 'single', group: '海外交換', cost: 2000, multiplier: 2.0, quota: 2, selectedPlayers: [] },
-  { name: '擂台賽（男）', type: 'single', group: '機會', cost: 0, multiplier: 1.1, quota: 1, selectedPlayers: [] },
-  { name: 'Sit-up（女）', type: 'single', group: '機會', cost: 0, multiplier: 1.2, quota: 1, selectedPlayers: [] },
+  { id: 9, name: '明愛補習社', type: 'single', group: '補習', cost: 1000, multiplier: 1.4, condition: '考試後，海關有可能會隨機抽查一人查問' },
+  { id: 10, name: '明愛補習社優質內部影片流出', type: 'single', group: '補習', cost: 200, multiplier: 1.4, condition: '如發現非法下載，留案底' },
+  { id: 11, name: '電腦/寬頻/手機電話', type: 'single', group: '設備', cost: 1000, multiplier: 1.4 },
+  { id: 12, name: '流動數據', type: 'single', group: '設備', cost: 500, multiplier: 1.2 },
+  { id: 13, name: '體育', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
+  { id: 14, name: '藝術', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
+  { id: 15, name: '學術', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
+  { id: 16, name: '社會運動', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
+  { id: 17, name: '義工服務', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
+  { id: 18, name: '海外交換生計劃', type: 'single', group: '海外交換', cost: 2000, multiplier: 2.0, quota: 2, selectedPlayers: [] },
+  { id: 19, name: '擂台賽（男）', type: 'single', group: '機會', cost: 0, multiplier: 1.1, quota: 1, selectedPlayers: [] },
+  { id: 20, name: 'Sit-up（女）', type: 'single', group: '機會', cost: 0, multiplier: 1.2, quota: 1, selectedPlayers: [] },
 ];
 
 function App() {
@@ -44,12 +45,16 @@ function App() {
   const [tempRoundData, setTempRoundData] = useState(null)
   const [eventTab, setEventTab] = useState('all'); // all, chain, single, custom
   const [showTableSelect, setShowTableSelect] = useState(false);
+  
+  // 事件編輯相關狀態
+  const [allCards, setAllCards] = useState(sampleCards);
+  const [editingCard, setEditingCard] = useState(null);
 
   // 分類事件卡
-  const chainCards = sampleCards.filter(card => card.type === 'chain');
-  const singleCards = sampleCards.filter(card => card.type === 'single');
-  const customCards = sampleCards.filter(card => card.type === 'custom');
-  let filteredCards = sampleCards;
+  const chainCards = allCards.filter(card => card.type === 'chain');
+  const singleCards = allCards.filter(card => card.type === 'single');
+  const customCards = allCards.filter(card => card.type === 'custom');
+  let filteredCards = allCards;
   if (eventTab === 'chain') filteredCards = chainCards;
   else if (eventTab === 'single') filteredCards = singleCards;
   else if (eventTab === 'custom') filteredCards = customCards;
@@ -115,7 +120,7 @@ function App() {
 
   // 取消選擇卡牌
   const handleUnselectCard = (playerIdx, cardName) => {
-    const card = sampleCards.find(c => c.name === cardName);
+    const card = allCards.find(c => c.name === cardName);
     if (!card) return;
     setPlayers(prev => prev.map((p, idx) => {
       if (idx !== playerIdx) return p;
@@ -132,6 +137,34 @@ function App() {
   }
 
   const handleGameOver = () => setGameOver(true)
+
+  // 事件編輯相關處理函數
+  const handleEditCard = (card) => {
+    setEditingCard(card);
+  };
+
+  const handleSaveCard = (cardData) => {
+    const isEditing = allCards.some(c => c.id === cardData.id);
+    if (isEditing) {
+      setAllCards(prev => prev.map(c => c.id === cardData.id ? cardData : c));
+    } else {
+      setAllCards(prev => [...prev, cardData]);
+    }
+    setEditingCard(null);
+  };
+
+  const handleDeleteCard = (cardId) => {
+    setAllCards(prev => prev.filter(c => c.id !== cardId));
+    setEditingCard(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCard(null);
+  };
+
+  const handleAddNewCard = () => {
+    setEditingCard({});
+  };
 
   return (
     <div className="App">
@@ -205,11 +238,26 @@ function App() {
             <div style={{ flex: 1 }}>
               <h2>選擇人生事件卡</h2>
               {/* 事件卡分類標籤 */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
                 <button onClick={() => setEventTab('all')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'all' ? '#1976d2' : '#e3eafc', color: eventTab === 'all' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>全部</button>
                 <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
                 <button onClick={() => setEventTab('single')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'single' ? '#1976d2' : '#e3eafc', color: eventTab === 'single' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>非連續事件</button>
                 <button onClick={() => setEventTab('custom')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'custom' ? '#1976d2' : '#e3eafc', color: eventTab === 'custom' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>自訂機會</button>
+                <button 
+                  onClick={handleAddNewCard}
+                  style={{ 
+                    padding: '6px 18px', 
+                    borderRadius: 20, 
+                    border: 'none', 
+                    background: '#4caf50', 
+                    color: '#fff', 
+                    fontWeight: 600, 
+                    cursor: 'pointer',
+                    marginLeft: 'auto'
+                  }}
+                >
+                  ➕ 新增事件
+                </button>
               </div>
               <div style={{ marginBottom: '1em', padding: '1em', background: '#f5f5f5', borderRadius: '8px' }}>
                 <h3 style={{ margin: '0 0 0.5em 0' }}>當前選擇玩家：<span style={{ color: players[currentPlayer]?.color }}>{players[currentPlayer]?.name}</span></h3>
@@ -223,6 +271,7 @@ function App() {
                 currentPlayer={currentPlayer}
                 onSelectPlayer={setCurrentPlayer}
                 onUnselectCard={handleUnselectCard}
+                onEditCard={handleEditCard}
               />
             </div>
           </div>
@@ -244,6 +293,14 @@ function App() {
           onSelectCard={handleSelectCard}
           onUnselectCard={handleUnselectCard}
           onClose={() => setShowTableSelect(false)}
+        />
+      )}
+      {editingCard !== null && (
+        <EventEditor
+          card={editingCard}
+          onSave={handleSaveCard}
+          onCancel={handleCancelEdit}
+          onDelete={handleDeleteCard}
         />
       )}
     </div>

@@ -11,7 +11,7 @@ function groupCards(cards) {
   return groups;
 }
 
-function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSelectPlayer, onUnselectCard }) {
+function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSelectPlayer, onUnselectCard, onEditCard }) {
   // 取得目前玩家已選過的卡牌名稱
   const selectedCardNames = history.filter(h => h.playerIdx === currentPlayer).map(h => h.cardName);
   // 取得目前玩家已完成的 group（只針對 chain 事件）
@@ -96,6 +96,7 @@ function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSel
                   unlockTip={unlockTip}
                   completed={completed}
                   quotaInfo={quotaInfo}
+                  onEditCard={onEditCard}
                 />
               );
             })}
