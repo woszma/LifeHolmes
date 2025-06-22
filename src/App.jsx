@@ -49,11 +49,12 @@ function App() {
   // 事件編輯相關狀態
   const [allCards, setAllCards] = useState(sampleCards);
   const [editingCard, setEditingCard] = useState(null);
+  const [customTabs, setCustomTabs] = useState([]);
 
   // 分類事件卡
   const chainCards = allCards.filter(card => card.type === 'chain');
   const singleCards = allCards.filter(card => card.type === 'single');
-  const customCards = allCards.filter(card => card.type === 'custom');
+  const customCards = allCards.filter(card => card.isCustom === true);
   let filteredCards = allCards;
   if (eventTab === 'chain') filteredCards = chainCards;
   else if (eventTab === 'single') filteredCards = singleCards;
@@ -144,6 +145,10 @@ function App() {
   };
 
   const handleSaveCard = (cardData) => {
+    // 自動加入新tab名稱
+    if (cardData.customTab && !customTabs.includes(cardData.customTab)) {
+      setCustomTabs(prev => [...prev, cardData.customTab]);
+    }
     const isEditing = allCards.some(c => c.id === cardData.id);
     if (isEditing) {
       setAllCards(prev => prev.map(c => c.id === cardData.id ? cardData : c));
@@ -164,6 +169,13 @@ function App() {
 
   const handleAddNewCard = () => {
     setEditingCard({});
+  };
+
+  // 處理自訂標記
+  const handleToggleCustom = (card) => {
+    setAllCards(prev => prev.map(c => 
+      c.id === card.id ? { ...c, isCustom: !c.isCustom } : c
+    ));
   };
 
   return (
@@ -238,11 +250,27 @@ function App() {
             <div style={{ flex: 1 }}>
               <h2>選擇人生事件卡</h2>
               {/* 事件卡分類標籤 */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button onClick={() => setEventTab('all')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'all' ? '#1976d2' : '#e3eafc', color: eventTab === 'all' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>全部</button>
                 <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
                 <button onClick={() => setEventTab('single')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'single' ? '#1976d2' : '#e3eafc', color: eventTab === 'single' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>非連續事件</button>
-                <button onClick={() => setEventTab('custom')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'custom' ? '#1976d2' : '#e3eafc', color: eventTab === 'custom' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>自訂機會</button>
+                {customTabs.map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setEventTab(tab)}
+                    style={{
+                      padding: '6px 18px',
+                      borderRadius: 20,
+                      border: 'none',
+                      background: eventTab === tab ? '#8e24aa' : '#f3e5f5',
+                      color: eventTab === tab ? '#fff' : '#8e24aa',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {tab}
+                  </button>
+                ))}
                 <button 
                   onClick={handleAddNewCard}
                   style={{ 
@@ -259,19 +287,28 @@ function App() {
                   ➕ 新增事件
                 </button>
               </div>
+
+              {/* 根據 eventTab 過濾顯示事件卡 */}
               <div style={{ marginBottom: '1em', padding: '1em', background: '#f5f5f5', borderRadius: '8px' }}>
                 <h3 style={{ margin: '0 0 0.5em 0' }}>當前選擇玩家：<span style={{ color: players[currentPlayer]?.color }}>{players[currentPlayer]?.name}</span></h3>
                 <p style={{ margin: 0, color: '#666' }}>點擊其他玩家可以切換選擇</p>
               </div>
               <GameBoard
                 players={players}
-                cards={filteredCards}
+                cards={(() => {
+                  if (eventTab === 'all') return allCards;
+                  if (eventTab === 'chain') return allCards.filter(card => card.type === 'chain');
+                  if (eventTab === 'single') return allCards.filter(card => card.type === 'single');
+                  if (customTabs.includes(eventTab)) return allCards.filter(card => card.customTab === eventTab);
+                  return allCards;
+                })()}
                 onSelectCard={handleSelectCard}
                 history={history}
                 currentPlayer={currentPlayer}
                 onSelectPlayer={setCurrentPlayer}
                 onUnselectCard={handleUnselectCard}
                 onEditCard={handleEditCard}
+                onToggleCustom={handleToggleCustom}
               />
             </div>
           </div>

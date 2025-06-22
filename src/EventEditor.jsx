@@ -25,7 +25,7 @@ const initialFormState = {
   prerequisite: '',
 };
 
-function EventEditor({ card, onSave, onCancel, onDelete }) {
+function EventEditor({ card, onSave, onCancel, onDelete, customTabs = [] }) {
   const [formData, setFormData] = useState({
     name: '',
     type: 'single',
@@ -35,7 +35,9 @@ function EventEditor({ card, onSave, onCancel, onDelete }) {
     condition: '',
     quota: '',
     order: '',
-    prerequisite: ''
+    prerequisite: '',
+    isCustom: false,
+    customTab: ''
   });
 
   useEffect(() => {
@@ -49,7 +51,9 @@ function EventEditor({ card, onSave, onCancel, onDelete }) {
         condition: card.condition || '',
         quota: card.quota || '',
         order: card.order || '',
-        prerequisite: card.prerequisite || ''
+        prerequisite: card.prerequisite || '',
+        isCustom: card.isCustom || false,
+        customTab: card.customTab || ''
       });
     }
   }, [card]);
@@ -62,7 +66,8 @@ function EventEditor({ card, onSave, onCancel, onDelete }) {
       cost: parseInt(formData.cost) || 0,
       multiplier: parseFloat(formData.multiplier) || 1.0,
       quota: formData.quota ? parseInt(formData.quota) : null,
-      order: formData.order ? parseInt(formData.order) : null
+      order: formData.order ? parseInt(formData.order) : null,
+      customTab: formData.customTab?.trim() || ''
     };
     onSave(eventData);
   };
@@ -259,6 +264,46 @@ function EventEditor({ card, onSave, onCancel, onDelete }) {
                 resize: 'vertical'
               }}
             />
+          </div>
+
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={formData.isCustom}
+                onChange={(e) => handleChange('isCustom', e.target.checked)}
+                style={{ width: 16, height: 16 }}
+              />
+              <span style={{ fontWeight: 600 }}>加入自訂機會</span>
+            </label>
+            <p style={{ margin: '4px 0 0 24px', color: '#666', fontSize: '0.9em' }}>
+              勾選後此事件會出現在「自訂機會」Tab中
+            </p>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>分配到自訂Tab</label>
+            <input
+              list="customTabList"
+              value={formData.customTab}
+              onChange={e => handleChange('customTab', e.target.value)}
+              placeholder="可輸入新名稱或選擇現有Tab"
+              style={{
+                width: '100%',
+                padding: 8,
+                border: '1px solid #ddd',
+                borderRadius: 4,
+                fontSize: 14
+              }}
+            />
+            <datalist id="customTabList">
+              {customTabs.map(tab => (
+                <option value={tab} key={tab} />
+              ))}
+            </datalist>
+            <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '0.9em' }}>
+              可直接輸入新Tab名稱，或選擇現有Tab
+            </p>
           </div>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
