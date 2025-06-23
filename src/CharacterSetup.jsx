@@ -37,7 +37,7 @@ function getRandomMoney() {
   return getRandomInt(min, max) * 100;
 }
 
-function CharacterSetup({ onStart }) {
+function CharacterSetup({ onStart, onLoadPreset }) {
   const [players, setPlayers] = useState(DEFAULT_PLAYERS);
 
   const handleChange = (idx, field, value) => {
@@ -81,6 +81,13 @@ function CharacterSetup({ onStart }) {
   return (
     <div className="character-setup">
       <h2>建立你的角色（可多位玩家）</h2>
+      <div style={{ marginBottom: 16 }}>
+        {onLoadPreset && (
+          <button type="button" onClick={onLoadPreset} style={{ marginRight: 12, background: '#8e24aa', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 18px', fontWeight: 600, cursor: 'pointer' }}>
+            載入預設設定
+          </button>
+        )}
+      </div>
       <form onSubmit={handleSubmit}>
         {players.map((player, idx) => (
           <div key={idx} style={{ 

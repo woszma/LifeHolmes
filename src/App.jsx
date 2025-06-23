@@ -8,6 +8,7 @@ import RoundSummary from "./RoundSummary";
 import TableSelectModal from './TableSelectModal';
 import EventEditor from './EventEditor';
 import DynamicChainFlowChart from './DynamicChainFlowChart';
+import { savePreset, loadPreset, listPresets } from './cloudPresetApi';
 import "./App.css";
 
 const sampleCards = [
@@ -47,6 +48,13 @@ function App() {
   const [eventTab, setEventTab] = useState('all'); // all, chain, single, custom
   const [showTableSelect, setShowTableSelect] = useState(false);
   const [showFlowChart, setShowFlowChart] = useState(false);
+  const [showPresetModal, setShowPresetModal] = useState(false);
+  const [presetList, setPresetList] = useState([]);
+  const [loadingPresets, setLoadingPresets] = useState(false);
+  const [showSavePresetModal, setShowSavePresetModal] = useState(false);
+  const [savePresetName, setSavePresetName] = useState("");
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   
   // 事件編輯相關狀態
   const [allCards, setAllCards] = useState(sampleCards);
@@ -180,34 +188,53 @@ function App() {
     ));
   };
 
+  // 載入preset的callback
+  const handleLoadPresetClick = async () => {
+    setShowPresetModal(true);
+    setLoadingPresets(true);
+    const res = await listPresets(); // 請確保已引入listPresets
+    setPresetList(res.presets || []);
+    setLoadingPresets(false);
+  };
+
   return (
     <div className="App">
-      {players && !gameOver && (
-        <div style={{ width: '100%', maxWidth: 800, margin: '0 auto 1em auto', padding: '0 1em' }}>
-          <div style={{ marginBottom: 16, fontWeight: 500, color: '#1976d2', fontSize: '1.1em' }}>
-            第 {currentRound} 回合
-          </div>
-          <button
-            onClick={() => setShowTableSelect(true)}
-            style={{
-              margin: '12px 0',
-              padding: '8px 24px',
-              background: '#1976d2',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              fontWeight: 600,
-              fontSize: '1.1em',
-              cursor: 'pointer',
-              boxShadow: '0 1px 4px #0001'
-            }}
-          >
-            表格選擇模式
-          </button>
-        </div>
-      )}
+      <h1>人生 RPG 遊戲</h1>
       {!players ? (
-        <CharacterSetup onStart={handleStart} />
+        <>
+          <CharacterSetup onStart={handleStart} onLoadPreset={handleLoadPresetClick} />
+          {showPresetModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 320, maxWidth: 400, boxShadow: '0 4px 24px #0002', position: 'relative' }}>
+                <button onClick={() => setShowPresetModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }} title="關閉">✖️</button>
+                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#1976d2' }}>選擇預設設定</h3>
+                {loadingPresets ? (
+                  <div>載入中...</div>
+                ) : (
+                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {presetList.map(presetId => (
+                      <li key={presetId} style={{ marginBottom: 8 }}>
+                        <button onClick={async () => {
+                          setShowPresetModal(false);
+                          const res = await loadPreset(presetId); // 請確保已引入loadPreset
+                          if (res.status === 'success') {
+                            setAllCards(res.data.events || []);
+                            setCustomTabs(res.data.tabs || []);
+                          } else {
+                            alert('載入失敗：' + (res.message || '未知錯誤'));
+                          }
+                        }}
+                        style={{ padding: '6px 18px', borderRadius: 8, border: '1px solid #1976d2', background: '#f3e5f5', color: '#1976d2', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+                          {presetId}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       ) : gameOver ? (
         <GameResult players={players} onRestart={() => setPlayers(null)} />
       ) : (
@@ -255,45 +282,71 @@ function App() {
                 <p style={{ margin: 0, color: '#666' }}>點擊其他玩家可以切換選擇</p>
               </div>
               {/* 事件卡分類標籤 */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-                <button onClick={() => setEventTab('all')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'all' ? '#1976d2' : '#e3eafc', color: eventTab === 'all' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>全部</button>
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap', position: 'relative' }}>
+                <div style={{ display: 'flex', gap: 8, flex: 1, flexWrap: 'wrap' }}>
+                  <button onClick={() => setEventTab('all')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'all' ? '#1976d2' : '#e3eafc', color: eventTab === 'all' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>全部</button>
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
+                  </div>
+                  <button onClick={() => setEventTab('single')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'single' ? '#1976d2' : '#e3eafc', color: eventTab === 'single' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>非連續事件</button>
+                  <button onClick={() => setEventTab('special')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'special' ? '#8e24aa' : '#f3e5f5', color: eventTab === 'special' ? '#fff' : '#8e24aa', fontWeight: 600, cursor: 'pointer' }}>所有特別事件</button>
+                  {customTabs.map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setEventTab(tab)}
+                      style={{
+                        padding: '6px 18px',
+                        borderRadius: 20,
+                        border: 'none',
+                        background: eventTab === tab ? '#8e24aa' : '#f3e5f5',
+                        color: eventTab === tab ? '#fff' : '#8e24aa',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {tab}
+                    </button>
+                  ))}
                 </div>
-                <button onClick={() => setEventTab('single')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'single' ? '#1976d2' : '#e3eafc', color: eventTab === 'single' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>非連續事件</button>
-                <button onClick={() => setEventTab('special')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'special' ? '#8e24aa' : '#f3e5f5', color: eventTab === 'special' ? '#fff' : '#8e24aa', fontWeight: 600, cursor: 'pointer' }}>所有特別事件</button>
-                {customTabs.map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setEventTab(tab)}
-                    style={{
-                      padding: '6px 18px',
-                      borderRadius: 20,
-                      border: 'none',
-                      background: eventTab === tab ? '#8e24aa' : '#f3e5f5',
-                      color: eventTab === tab ? '#fff' : '#8e24aa',
-                      fontWeight: 600,
-                      cursor: 'pointer'
+                <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                  <button 
+                    onClick={handleAddNewCard}
+                    style={{ 
+                      padding: '6px 18px', 
+                      borderRadius: 20, 
+                      border: 'none', 
+                      background: '#4caf50', 
+                      color: '#fff', 
+                      fontWeight: 600, 
+                      cursor: 'pointer',
                     }}
                   >
-                    {tab}
+                    ➕ 新增事件
                   </button>
-                ))}
-                <button 
-                  onClick={handleAddNewCard}
-                  style={{ 
-                    padding: '6px 18px', 
-                    borderRadius: 20, 
-                    border: 'none', 
-                    background: '#4caf50', 
-                    color: '#fff', 
-                    fontWeight: 600, 
-                    cursor: 'pointer',
-                    marginLeft: 'auto'
-                  }}
-                >
-                  ➕ 新增事件
-                </button>
+                  <button
+                    onClick={() => setShowMenu(v => !v)}
+                    style={{ padding: '6px 12px', borderRadius: 20, border: 'none', background: '#eee', color: '#333', fontWeight: 600, cursor: 'pointer', fontSize: 22, lineHeight: 1 }}
+                    title="更多功能"
+                  >
+                    &#8942;
+                  </button>
+                  {showMenu && (
+                    <div style={{ position: 'absolute', right: 0, top: 48, background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px #0002', zIndex: 100 }}>
+                      <button
+                        onClick={() => { setShowSavePresetModal(true); setShowMenu(false); }}
+                        style={{ display: 'block', width: '100%', padding: '10px 24px', background: 'none', border: 'none', color: '#1976d2', fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}
+                      >
+                        儲存預設
+                      </button>
+                      <button
+                        onClick={() => { handleLoadPresetClick(); setShowMenu(false); }}
+                        style={{ display: 'block', width: '100%', padding: '10px 24px', background: 'none', border: 'none', color: '#8e24aa', fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}
+                      >
+                        載入預設
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               {/* 選擇人生事件卡標題與流程圖連結，移到tab bar下方 */}
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
@@ -364,6 +417,41 @@ function App() {
             <button onClick={() => setShowFlowChart(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }} title="關閉">✖️</button>
             <h3 style={{ marginTop: 0, marginBottom: 16, color: '#1976d2' }}>升學路徑流程圖</h3>
             <DynamicChainFlowChart chainCards={allCards.filter(card => card.type === 'chain')} />
+          </div>
+        </div>
+      )}
+      {/* 儲存預設modal */}
+      {showSavePresetModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 320, maxWidth: 400, boxShadow: '0 4px 24px #0002', position: 'relative' }}>
+            <button onClick={() => setShowSavePresetModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }} title="關閉">✖️</button>
+            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#1976d2' }}>儲存預設</h3>
+            <input
+              type="text"
+              value={savePresetName}
+              onChange={e => setSavePresetName(e.target.value)}
+              placeholder="請輸入預設名稱"
+              style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, fontSize: 15, marginBottom: 16 }}
+            />
+            <button
+              onClick={async () => {
+                if (!savePresetName.trim()) return alert('請輸入預設名稱');
+                setSavingPreset(true);
+                const res = await savePreset(savePresetName.trim(), { tabs: customTabs, events: allCards });
+                setSavingPreset(false);
+                if (res.status === 'success') {
+                  alert('儲存成功！');
+                  setShowSavePresetModal(false);
+                  setSavePresetName("");
+                } else {
+                  alert('儲存失敗：' + (res.message || '未知錯誤'));
+                }
+              }}
+              style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer', width: '100%' }}
+              disabled={savingPreset}
+            >
+              {savingPreset ? '儲存中...' : '儲存'}
+            </button>
           </div>
         </div>
       )}
