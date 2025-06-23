@@ -266,21 +266,6 @@ function EventEditor({ card, onSave, onCancel, onDelete, customTabs = [] }) {
             />
           </div>
 
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={formData.isCustom}
-                onChange={(e) => handleChange('isCustom', e.target.checked)}
-                style={{ width: 16, height: 16 }}
-              />
-              <span style={{ fontWeight: 600 }}>加入自訂機會</span>
-            </label>
-            <p style={{ margin: '4px 0 0 24px', color: '#666', fontSize: '0.9em' }}>
-              勾選後此事件會出現在「自訂機會」Tab中
-            </p>
-          </div>
-
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>分配到自訂Tab</label>
             <input

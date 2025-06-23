@@ -254,6 +254,7 @@ function App() {
                 <button onClick={() => setEventTab('all')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'all' ? '#1976d2' : '#e3eafc', color: eventTab === 'all' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>全部</button>
                 <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
                 <button onClick={() => setEventTab('single')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'single' ? '#1976d2' : '#e3eafc', color: eventTab === 'single' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>非連續事件</button>
+                <button onClick={() => setEventTab('special')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'special' ? '#8e24aa' : '#f3e5f5', color: eventTab === 'special' ? '#fff' : '#8e24aa', fontWeight: 600, cursor: 'pointer' }}>特別事件</button>
                 {customTabs.map(tab => (
                   <button
                     key={tab}
@@ -299,6 +300,7 @@ function App() {
                   if (eventTab === 'all') return allCards;
                   if (eventTab === 'chain') return allCards.filter(card => card.type === 'chain');
                   if (eventTab === 'single') return allCards.filter(card => card.type === 'single');
+                  if (eventTab === 'special') return allCards.filter(card => card.customTab && card.customTab.trim() !== '');
                   if (customTabs.includes(eventTab)) return allCards.filter(card => card.customTab === eventTab);
                   return allCards;
                 })()}
