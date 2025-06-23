@@ -1,4 +1,4 @@
-function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, completed, quotaInfo, onEdit, onToggleCustom }) {
+function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, completed, quotaInfo, onEdit }) {
   const quota = card.quota;
   const selectedPlayers = quotaInfo?.selectedPlayers || card.selectedPlayers || [];
   const quotaLeft = quota ? quota - selectedPlayers.length : null;
@@ -36,28 +36,6 @@ function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, compl
         </button>
       )}
       
-      {onToggleCustom && (
-        <button
-          onClick={() => onToggleCustom(card)}
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: onEdit ? 40 : 8,
-            background: card.isCustom ? '#9c27b0' : '#e0e0e0',
-            color: card.isCustom ? 'white' : '#666',
-            border: 'none',
-            borderRadius: 4,
-            padding: '4px 8px',
-            fontSize: '0.8em',
-            cursor: 'pointer',
-            zIndex: 10
-          }}
-          title={card.isCustom ? "移除自訂" : "加入自訂"}
-        >
-          {card.isCustom ? '⭐' : '☆'}
-        </button>
-      )}
-      
       <h3 style={{ marginBottom: 8 }}>{card.name}</h3>
       <p>費用：{card.cost}</p>
       <p>戰鬥力倍率：x{card.multiplier}</p>
@@ -86,7 +64,7 @@ function Card({ card, onSelect, disabled, selectedText, locked, unlockTip, compl
         <div style={{
           position: 'absolute',
           top: 8,
-          right: (onEdit ? 40 : 8) + (onToggleCustom ? 32 : 0),
+          right: onEdit ? 40 : 8,
           background: '#43a047',
           color: 'white',
           borderRadius: 12,

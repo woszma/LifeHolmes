@@ -52,7 +52,6 @@ function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSel
 
   return (
     <div style={{ flex: 1, minWidth: 0, maxWidth: '1000px' }}>
-      <h2>選擇人生事件卡</h2>
       {Object.entries(grouped).map(([group, groupCards]) => (
         <div key={group} style={{ marginBottom: '2em' }}>
           <h3 style={{ borderBottom: '1px solid #ccc', margin: '0 0 1em 0', paddingBottom: 4 }}>{group}</h3>

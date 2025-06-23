@@ -7,6 +7,7 @@ import PowerTrendChart from "./PowerTrendChart";
 import RoundSummary from "./RoundSummary";
 import TableSelectModal from './TableSelectModal';
 import EventEditor from './EventEditor';
+import DynamicChainFlowChart from './DynamicChainFlowChart';
 import "./App.css";
 
 const sampleCards = [
@@ -45,6 +46,7 @@ function App() {
   const [tempRoundData, setTempRoundData] = useState(null)
   const [eventTab, setEventTab] = useState('all'); // all, chain, single, custom
   const [showTableSelect, setShowTableSelect] = useState(false);
+  const [showFlowChart, setShowFlowChart] = useState(false);
   
   // 事件編輯相關狀態
   const [allCards, setAllCards] = useState(sampleCards);
@@ -180,7 +182,6 @@ function App() {
 
   return (
     <div className="App">
-      <h1>人生 RPG 遊戲</h1>
       {players && !gameOver && (
         <div style={{ width: '100%', maxWidth: 800, margin: '0 auto 1em auto', padding: '0 1em' }}>
           <div style={{ marginBottom: 16, fontWeight: 500, color: '#1976d2', fontSize: '1.1em' }}>
@@ -248,13 +249,19 @@ function App() {
               onUnselectCard={handleUnselectCard}
             />
             <div style={{ flex: 1 }}>
-              <h2>選擇人生事件卡</h2>
+              {/* 當前選擇玩家區塊，移到tab bar上方 */}
+              <div style={{ marginBottom: 12, padding: '1em', background: '#f5f5f5', borderRadius: '8px' }}>
+                <h3 style={{ margin: '0 0 0.5em 0' }}>當前選擇玩家：<span style={{ color: players[currentPlayer]?.color }}>{players[currentPlayer]?.name}</span></h3>
+                <p style={{ margin: 0, color: '#666' }}>點擊其他玩家可以切換選擇</p>
+              </div>
               {/* 事件卡分類標籤 */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button onClick={() => setEventTab('all')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'all' ? '#1976d2' : '#e3eafc', color: eventTab === 'all' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>全部</button>
-                <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <button onClick={() => setEventTab('chain')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'chain' ? '#1976d2' : '#e3eafc', color: eventTab === 'chain' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>連續事件</button>
+                </div>
                 <button onClick={() => setEventTab('single')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'single' ? '#1976d2' : '#e3eafc', color: eventTab === 'single' ? '#fff' : '#1976d2', fontWeight: 600, cursor: 'pointer' }}>非連續事件</button>
-                <button onClick={() => setEventTab('special')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'special' ? '#8e24aa' : '#f3e5f5', color: eventTab === 'special' ? '#fff' : '#8e24aa', fontWeight: 600, cursor: 'pointer' }}>特別事件</button>
+                <button onClick={() => setEventTab('special')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: eventTab === 'special' ? '#8e24aa' : '#f3e5f5', color: eventTab === 'special' ? '#fff' : '#8e24aa', fontWeight: 600, cursor: 'pointer' }}>所有特別事件</button>
                 {customTabs.map(tab => (
                   <button
                     key={tab}
@@ -288,12 +295,21 @@ function App() {
                   ➕ 新增事件
                 </button>
               </div>
+              {/* 選擇人生事件卡標題與流程圖連結，移到tab bar下方 */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <h2 style={{ margin: 0 }}>選擇人生事件卡</h2>
+                {eventTab === 'chain' && (
+                  <a
+                    href="#"
+                    onClick={e => { e.preventDefault(); setShowFlowChart(true); }}
+                    style={{ marginLeft: 12, color: '#1976d2', textDecoration: 'underline', fontSize: 15, cursor: 'pointer' }}
+                  >
+                    升學路徑流程圖
+                  </a>
+                )}
+              </div>
 
               {/* 根據 eventTab 過濾顯示事件卡 */}
-              <div style={{ marginBottom: '1em', padding: '1em', background: '#f5f5f5', borderRadius: '8px' }}>
-                <h3 style={{ margin: '0 0 0.5em 0' }}>當前選擇玩家：<span style={{ color: players[currentPlayer]?.color }}>{players[currentPlayer]?.name}</span></h3>
-                <p style={{ margin: 0, color: '#666' }}>點擊其他玩家可以切換選擇</p>
-              </div>
               <GameBoard
                 players={players}
                 cards={(() => {
@@ -341,6 +357,15 @@ function App() {
           onCancel={handleCancelEdit}
           onDelete={handleDeleteCard}
         />
+      )}
+      {showFlowChart && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 320, maxWidth: 700, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 4px 24px #0002', position: 'relative' }}>
+            <button onClick={() => setShowFlowChart(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }} title="關閉">✖️</button>
+            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#1976d2' }}>升學路徑流程圖</h3>
+            <DynamicChainFlowChart chainCards={allCards.filter(card => card.type === 'chain')} />
+          </div>
+        </div>
       )}
     </div>
   )
