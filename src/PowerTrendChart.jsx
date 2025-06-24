@@ -24,29 +24,96 @@ ChartJS.register(
 function PowerTrendChart({ roundHistory }) {
   const options = {
     responsive: true,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 12,
+            weight: 'bold'
+          }
+        }
       },
       title: {
         display: true,
         text: '玩家戰鬥力趨勢圖',
+        font: {
+          size: 16,
+          weight: 'bold'
+        }
       },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: '#fff',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          title: function(context) {
+            return `回合 ${context[0].dataIndex}`;
+          },
+          label: function(context) {
+            return `${context.dataset.label}: ${context.parsed.y} 戰鬥力`;
+          },
+          afterLabel: function(context) {
+            const initialPower = roundHistory[0]?.playerPowers.find(p => p.name === context.dataset.label)?.power || 1;
+            const multiplier = context.parsed.y / initialPower;
+            return `倍數: ${multiplier.toFixed(2)}x`;
+          }
+        }
+      }
     },
     scales: {
       y: {
         beginAtZero: true,
         title: {
           display: true,
-          text: '戰鬥力'
+          text: '戰鬥力',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)'
         }
       },
       x: {
         title: {
           display: true,
-          text: '回合'
+          text: '回合',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)'
         }
       }
+    },
+    elements: {
+      point: {
+        radius: 4,
+        hoverRadius: 6,
+        borderWidth: 2
+      },
+      line: {
+        borderWidth: 3,
+        tension: 0.2
+      }
+    },
+    hover: {
+      mode: 'index',
+      intersect: false
     }
   };
 
@@ -58,8 +125,12 @@ function PowerTrendChart({ roundHistory }) {
       round.playerPowers.find(p => p.name === player.name)?.power || 0
     ),
     borderColor: player.color,
-    backgroundColor: player.color,
-    tension: 0.1
+    backgroundColor: player.color + '40', // 加入透明度
+    pointBackgroundColor: player.color,
+    pointBorderColor: '#fff',
+    pointHoverBackgroundColor: player.color,
+    pointHoverBorderColor: '#fff',
+    tension: 0.2
   })) || [];
 
   const data = {

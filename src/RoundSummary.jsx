@@ -15,8 +15,17 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
     acc[p.name] = p.power;
     return acc;
   }, {});
+  
   // 排序（依照目前戰鬥力由高到低）
   const ranking = [...playerStates].sort((a, b) => b.power - a.power);
+  
+  // 初始排名（依照初始戰鬥力由高到低）
+  const initialRanking = (roundHistory[0]?.playerPowers || []).sort((a, b) => b.power - a.power);
+  const initialRankMap = initialRanking.reduce((acc, p, idx) => {
+    acc[p.name] = idx + 1;
+    return acc;
+  }, {});
+  
   const roundLabel = `回合${roundData.round}戰鬥力`;
 
   return (
@@ -36,7 +45,7 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
         background: 'white',
         padding: '2em',
         borderRadius: '12px',
-        maxWidth: '820px',
+        maxWidth: '920px',
         width: '95%',
         maxHeight: '90vh',
         overflowY: 'auto',
@@ -50,15 +59,21 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
           <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: '#f9f9f9', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px #0001' }}>
             <thead>
               <tr style={{ background: '#f1f1f1' }}>
-                <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>排名</th>
+                <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>目前排名</th>
                 <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>玩家</th>
+                <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>初始排名</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>初始戰鬥力</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>{roundLabel}</th>
+                <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>排名變化</th>
               </tr>
             </thead>
             <tbody>
               {ranking.map((p, idx) => {
                 const multiplier = p.power / (initialPowers[p.name] || 1);
+                const currentRank = idx + 1;
+                const initialRank = initialRankMap[p.name] || 0;
+                const rankChange = initialRank - currentRank;
+                
                 return (
                   <tr
                     key={p.name}
@@ -72,7 +87,7 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
                     onMouseOut={e => e.currentTarget.style.background = idx === 0 ? 'linear-gradient(90deg,#fffde7 60%,#ffe082 100%)' : idx % 2 === 0 ? '#fff' : '#f5f5f5'}
                   >
                     <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: 18 }}>
-                      {idx === 0 ? <span style={{ fontSize: 20, marginRight: 4 }}>🏆</span> : null}{idx + 1}
+                      {idx === 0 ? <span style={{ fontSize: 20, marginRight: 4 }}>🏆</span> : null}{currentRank}
                     </td>
                     <td style={{ padding: '10px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{
@@ -87,9 +102,21 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
                       }}></span>
                       <span style={{ fontWeight: 600 }}>{p.name}</span>
                     </td>
+                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                      {initialRank === 0 ? '-' : initialRank}
+                    </td>
                     <td style={{ padding: '10px 8px', textAlign: 'right' }}>{initialPowers[p.name]}</td>
                     <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600, color: getMultiplierColor(multiplier) }}>
                       {p.power}（{multiplier.toFixed(2)}x）
+                    </td>
+                    <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                      {rankChange > 0 ? (
+                        <span style={{ color: '#4CAF50', fontWeight: 600 }}>↑ +{rankChange}</span>
+                      ) : rankChange < 0 ? (
+                        <span style={{ color: '#f44336', fontWeight: 600 }}>↓ {rankChange}</span>
+                      ) : (
+                        <span style={{ color: '#666' }}>-</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -97,7 +124,7 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
             </tbody>
           </table>
           <div style={{ fontSize: '0.95em', color: '#888', marginTop: 6, textAlign: 'right' }}>
-            <span>倍數 = 目前戰鬥力 ÷ 初始戰鬥力</span>
+            <span>倍數 = 目前戰鬥力 ÷ 初始戰鬥力 | 排名變化 = 初始排名 - 目前排名</span>
           </div>
         </div>
 
