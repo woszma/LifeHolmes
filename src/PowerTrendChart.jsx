@@ -25,8 +25,8 @@ function PowerTrendChart({ roundHistory }) {
   const options = {
     responsive: true,
     interaction: {
-      mode: 'index',
-      intersect: false,
+      mode: 'point',
+      intersect: true
     },
     plugins: {
       legend: {
@@ -112,8 +112,8 @@ function PowerTrendChart({ roundHistory }) {
       }
     },
     hover: {
-      mode: 'index',
-      intersect: false
+      mode: 'point',
+      intersect: true
     }
   };
 

@@ -1,6 +1,3 @@
-// Google Apps Script 後端程式碼
-// 請將此程式碼複製到 Google Apps Script 編輯器中
-
 const SPREADSHEET_ID = "1wSHfUlpzsWBVl0A9yn5AA-lgkcpy3Qmamh0DkZoKKac";
 const SHEET_NAME = "PRESET DATA";
 

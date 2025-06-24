@@ -62,7 +62,6 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
                 <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>目前排名</th>
                 <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>玩家</th>
                 <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>初始排名</th>
-                <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>初始戰鬥力</th>
                 <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>{roundLabel}</th>
                 <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>排名變化</th>
               </tr>
@@ -105,7 +104,6 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                       {initialRank === 0 ? '-' : initialRank}
                     </td>
-                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>{initialPowers[p.name]}</td>
                     <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600, color: getMultiplierColor(multiplier) }}>
                       {p.power}（{multiplier.toFixed(2)}x）
                     </td>
