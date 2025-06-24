@@ -351,6 +351,12 @@ function App() {
                   {showMenu && (
                     <div style={{ position: 'absolute', right: 0, top: 48, background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px #0002', zIndex: 100 }}>
                       <button
+                        onClick={() => { setShowTableSelect(true); setShowMenu(false); }}
+                        style={{ display: 'block', width: '100%', padding: '10px 24px', background: 'none', border: 'none', color: '#4CAF50', fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}
+                      >
+                        📊 表格選取
+                      </button>
+                      <button
                         onClick={() => { setShowSavePresetModal(true); setShowMenu(false); }}
                         style={{ display: 'block', width: '100%', padding: '10px 24px', background: 'none', border: 'none', color: '#1976d2', fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}
                       >
