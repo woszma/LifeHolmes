@@ -12,10 +12,34 @@ export async function savePreset(presetId, data) {
 
 export async function loadPreset(presetId) {
   const res = await fetch(`${API_URL}?action=load&presetId=${encodeURIComponent(presetId)}`);
-  return await res.json();
+  const data = await res.json();
+  
+  // 轉換資料結構以匹配前端期望的格式
+  if (data.status === 'success') {
+    // Google Apps Script 已經解析了 JSON，data.data 是物件
+    const presetData = data.data || {};
+    
+    return {
+      status: 'success',
+      data: {
+        events: Array.isArray(presetData.events) ? presetData.events : [],
+        tabs: Array.isArray(presetData.tabs) ? presetData.tabs : []
+      }
+    };
+  }
+  return data;
 }
 
 export async function listPresets() {
   const res = await fetch(`${API_URL}?action=list`);
-  return await res.json();
+  const data = await res.json();
+  
+  // 轉換資料結構以匹配前端期望的格式
+  if (data.status === 'success') {
+    return {
+      status: 'success',
+      presets: data.presets || []
+    };
+  }
+  return data;
 } 

@@ -61,11 +61,25 @@ function App() {
   const [editingCard, setEditingCard] = useState(null);
   const [customTabs, setCustomTabs] = useState([]);
 
+  // 載入preset的callback
+  const handleLoadPresetClick = async () => {
+    console.log('handleLoadPresetClick called');
+    setShowPresetModal(true);
+    setLoadingPresets(true);
+    const res = await listPresets(); // 請確保已引入listPresets
+    console.log('listPresets 回傳：', res);
+    setPresetList(res.presets || []);
+    setLoadingPresets(false);
+  };
+
+  // 確保 allCards 始終是陣列
+  const safeAllCards = Array.isArray(allCards) ? allCards : [];
+
   // 分類事件卡
-  const chainCards = allCards.filter(card => card.type === 'chain');
-  const singleCards = allCards.filter(card => card.type === 'single');
-  const customCards = allCards.filter(card => card.isCustom === true);
-  let filteredCards = allCards;
+  const chainCards = safeAllCards.filter(card => card.type === 'chain');
+  const singleCards = safeAllCards.filter(card => card.type === 'single');
+  const customCards = safeAllCards.filter(card => card.isCustom === true);
+  let filteredCards = safeAllCards;
   if (eventTab === 'chain') filteredCards = chainCards;
   else if (eventTab === 'single') filteredCards = singleCards;
   else if (eventTab === 'custom') filteredCards = customCards;
@@ -131,7 +145,7 @@ function App() {
 
   // 取消選擇卡牌
   const handleUnselectCard = (playerIdx, cardName) => {
-    const card = allCards.find(c => c.name === cardName);
+    const card = safeAllCards.find(c => c.name === cardName);
     if (!card) return;
     setPlayers(prev => prev.map((p, idx) => {
       if (idx !== playerIdx) return p;
@@ -159,7 +173,7 @@ function App() {
     if (cardData.customTab && !customTabs.includes(cardData.customTab)) {
       setCustomTabs(prev => [...prev, cardData.customTab]);
     }
-    const isEditing = allCards.some(c => c.id === cardData.id);
+    const isEditing = safeAllCards.some(c => c.id === cardData.id);
     if (isEditing) {
       setAllCards(prev => prev.map(c => c.id === cardData.id ? cardData : c));
     } else {
@@ -188,15 +202,6 @@ function App() {
     ));
   };
 
-  // 載入preset的callback
-  const handleLoadPresetClick = async () => {
-    setShowPresetModal(true);
-    setLoadingPresets(true);
-    const res = await listPresets(); // 請確保已引入listPresets
-    setPresetList(res.presets || []);
-    setLoadingPresets(false);
-  };
-
   return (
     <div className="App">
       <h1>人生 RPG 遊戲</h1>
@@ -211,25 +216,38 @@ function App() {
                 {loadingPresets ? (
                   <div>載入中...</div>
                 ) : (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {presetList.map(presetId => (
-                      <li key={presetId} style={{ marginBottom: 8 }}>
-                        <button onClick={async () => {
-                          setShowPresetModal(false);
-                          const res = await loadPreset(presetId); // 請確保已引入loadPreset
-                          if (res.status === 'success') {
-                            setAllCards(res.data.events || []);
-                            setCustomTabs(res.data.tabs || []);
-                          } else {
-                            alert('載入失敗：' + (res.message || '未知錯誤'));
-                          }
-                        }}
-                        style={{ padding: '6px 18px', borderRadius: 8, border: '1px solid #1976d2', background: '#f3e5f5', color: '#1976d2', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
-                          {presetId}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    {console.log('presetList in render:', presetList)}
+                    {presetList.length === 0 ? (
+                      <div style={{color:'#888',textAlign:'center',margin:'16px 0'}}>沒有可用的預設</div>
+                    ) : (
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {presetList.map(presetId => (
+                          <li key={presetId} style={{ marginBottom: 8 }}>
+                            <button onClick={async () => {
+                              setShowPresetModal(false);
+                              const res = await loadPreset(presetId); // 請確保已引入loadPreset
+                              console.log('loadPreset 回傳：', res);
+                              if (res.status === 'success') {
+                                // 確保 events 是陣列
+                                const events = Array.isArray(res.data.events) ? res.data.events : [];
+                                const tabs = Array.isArray(res.data.tabs) ? res.data.tabs : [];
+                                console.log('解析後的 events:', events);
+                                console.log('解析後的 tabs:', tabs);
+                                setAllCards(events);
+                                setCustomTabs(tabs);
+                              } else {
+                                alert('載入失敗：' + (res.message || '未知錯誤'));
+                              }
+                            }}
+                            style={{ padding: '6px 18px', borderRadius: 8, border: '1px solid #1976d2', background: '#f3e5f5', color: '#1976d2', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+                              {presetId}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -339,7 +357,11 @@ function App() {
                         儲存預設
                       </button>
                       <button
-                        onClick={() => { handleLoadPresetClick(); setShowMenu(false); }}
+                        onClick={() => { 
+                          console.log('主頁下拉選單 載入預設被點擊');
+                          handleLoadPresetClick(); 
+                          setShowMenu(false); 
+                        }}
                         style={{ display: 'block', width: '100%', padding: '10px 24px', background: 'none', border: 'none', color: '#8e24aa', fontWeight: 600, textAlign: 'left', cursor: 'pointer' }}
                       >
                         載入預設
@@ -366,12 +388,12 @@ function App() {
               <GameBoard
                 players={players}
                 cards={(() => {
-                  if (eventTab === 'all') return allCards;
-                  if (eventTab === 'chain') return allCards.filter(card => card.type === 'chain');
-                  if (eventTab === 'single') return allCards.filter(card => card.type === 'single');
-                  if (eventTab === 'special') return allCards.filter(card => card.customTab && card.customTab.trim() !== '');
-                  if (customTabs.includes(eventTab)) return allCards.filter(card => card.customTab === eventTab);
-                  return allCards;
+                  if (eventTab === 'all') return safeAllCards;
+                  if (eventTab === 'chain') return safeAllCards.filter(card => card.type === 'chain');
+                  if (eventTab === 'single') return safeAllCards.filter(card => card.type === 'single');
+                  if (eventTab === 'special') return safeAllCards.filter(card => card.customTab && card.customTab.trim() !== '');
+                  if (customTabs.includes(eventTab)) return safeAllCards.filter(card => card.customTab === eventTab);
+                  return safeAllCards;
                 })()}
                 onSelectCard={handleSelectCard}
                 history={history}
@@ -392,6 +414,51 @@ function App() {
             />
           )}
         </>
+      )}
+      {/* 預設選擇 modal - 在遊戲進行頁面也顯示 */}
+      {showPresetModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 320, maxWidth: 400, boxShadow: '0 4px 24px #0002', position: 'relative' }}>
+            <button onClick={() => setShowPresetModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }} title="關閉">✖️</button>
+            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#1976d2' }}>選擇預設設定</h3>
+            {loadingPresets ? (
+              <div>載入中...</div>
+            ) : (
+              <>
+                {console.log('presetList in render:', presetList)}
+                {presetList.length === 0 ? (
+                  <div style={{color:'#888',textAlign:'center',margin:'16px 0'}}>沒有可用的預設</div>
+                ) : (
+                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {presetList.map(presetId => (
+                      <li key={presetId} style={{ marginBottom: 8 }}>
+                        <button onClick={async () => {
+                          setShowPresetModal(false);
+                          const res = await loadPreset(presetId); // 請確保已引入loadPreset
+                          console.log('loadPreset 回傳：', res);
+                          if (res.status === 'success') {
+                            // 確保 events 是陣列
+                            const events = Array.isArray(res.data.events) ? res.data.events : [];
+                            const tabs = Array.isArray(res.data.tabs) ? res.data.tabs : [];
+                            console.log('解析後的 events:', events);
+                            console.log('解析後的 tabs:', tabs);
+                            setAllCards(events);
+                            setCustomTabs(tabs);
+                          } else {
+                            alert('載入失敗：' + (res.message || '未知錯誤'));
+                          }
+                        }}
+                        style={{ padding: '6px 18px', borderRadius: 8, border: '1px solid #1976d2', background: '#f3e5f5', color: '#1976d2', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+                          {presetId}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       )}
       {showTableSelect && (
         <TableSelectModal

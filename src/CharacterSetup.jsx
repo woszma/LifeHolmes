@@ -83,7 +83,7 @@ function CharacterSetup({ onStart, onLoadPreset }) {
       <h2>建立你的角色（可多位玩家）</h2>
       <div style={{ marginBottom: 16 }}>
         {onLoadPreset && (
-          <button type="button" onClick={onLoadPreset} style={{ marginRight: 12, background: '#8e24aa', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 18px', fontWeight: 600, cursor: 'pointer' }}>
+          <button type="button" onClick={() => {console.log('載入預設設定按鈕被點擊'); onLoadPreset();}} style={{ marginRight: 12, background: '#8e24aa', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 18px', fontWeight: 600, cursor: 'pointer' }}>
             載入預設設定
           </button>
         )}
