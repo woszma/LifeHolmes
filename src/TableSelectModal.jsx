@@ -1,6 +1,6 @@
 import React from 'react';
 
-function TableSelectModal({ players, cards, history, onSelectCard, onUnselectCard, onClose }) {
+function TableSelectModal({ players, cards, history, onSelectCard, onUnselectCard, onClose, isCurrentMC }) {
   // 取得所有玩家名稱
   const playerNames = players.map(p => p.name);
   // 取得所有事件名稱
@@ -130,7 +130,7 @@ function TableSelectModal({ players, cards, history, onSelectCard, onUnselectCar
                         }}
                         title={tip}
                         onClick={() => {
-                          if (locked) return;
+                          if (!isCurrentMC || locked) return;
                           if (selected) {
                             onUnselectCard(idx, card.name);
                           } else {

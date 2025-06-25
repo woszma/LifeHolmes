@@ -7,7 +7,7 @@ function getMultiplierColor(multiplier) {
   return '#e53935'; // 紅色
 }
 
-function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
+function RoundSummary({ roundData, roundHistory, onConfirm, onBack, isCurrentMC }) {
   // 取得本回合所有玩家的狀態
   const playerStates = roundData.playerPowers;
   // 取得初始戰鬥力（從第一回合 roundHistory[0]）
@@ -128,37 +128,20 @@ function RoundSummary({ roundData, onConfirm, onBack, roundHistory }) {
 
         <PowerTrendChart roundHistory={[...roundHistory, roundData]} />
 
-        <div style={{
-          display: 'flex',
-          gap: '1em',
-          marginTop: '2em',
-          justifyContent: 'flex-end'
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 24 }}>
+          {isCurrentMC && (
+            <button
+              onClick={onConfirm}
+              style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: '#4caf50', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+            >
+              確認結束回合
+            </button>
+          )}
           <button
             onClick={onBack}
-            style={{
-              padding: '8px 16px',
-              background: '#666',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
           >
             返回遊戲
-          </button>
-          <button
-            onClick={onConfirm}
-            style={{
-              padding: '8px 16px',
-              background: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            確認結束回合
           </button>
         </div>
       </div>

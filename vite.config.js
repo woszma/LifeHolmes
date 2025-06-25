@@ -14,7 +14,7 @@ export default defineConfig({
       }
     })
   ],
-  base: '/LifeHolmes/',
+  base: '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

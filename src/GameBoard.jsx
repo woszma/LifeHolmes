@@ -11,7 +11,7 @@ function groupCards(cards) {
   return groups;
 }
 
-function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSelectPlayer, onUnselectCard, onEditCard, onToggleCustom }) {
+function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSelectPlayer, onUnselectCard, onEditCard, onToggleCustom, isCurrentMC }) {
   // 取得目前玩家已選過的卡牌名稱
   const selectedCardNames = history.filter(h => h.playerIdx === currentPlayer).map(h => h.cardName);
   // 取得目前玩家已完成的 group（只針對 chain 事件）
@@ -38,14 +38,25 @@ function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSel
       quotaMap[card.name] = [];
     }
   });
+  
+  // 使用 Set 來確保每個玩家對同一個事件只被計算一次
+  const playerEventMap = {};
   history.forEach(h => {
     const card = cards.find(c => c.name === h.cardName);
     if (card && card.quota) {
       const player = players[h.playerIdx];
-      if (player && !quotaMap[card.name].includes(player.name)) {
-        quotaMap[card.name].push(player.name);
+      if (player) {
+        if (!playerEventMap[card.name]) {
+          playerEventMap[card.name] = new Set();
+        }
+        playerEventMap[card.name].add(player.name);
       }
     }
+  });
+  
+  // 將 Set 轉換為陣列
+  Object.keys(playerEventMap).forEach(cardName => {
+    quotaMap[cardName] = Array.from(playerEventMap[cardName]);
   });
 
   const grouped = groupCards(cards);
@@ -88,15 +99,16 @@ function GameBoard({ players, cards, onSelectCard, history, currentPlayer, onSel
                 <Card
                   key={card.name}
                   card={card}
-                  onSelect={() => onSelectCard(card)}
-                  disabled={selectedCardNames.includes(card.name)}
-                  selectedText={selectedCardNames.includes(card.name) ? '已選擇' : ''}
+                  onSelect={isCurrentMC ? () => onSelectCard(card) : undefined}
+                  disabled={isCurrentMC ? selectedCardNames.includes(card.name) : false}
+                  selectedText={isCurrentMC && selectedCardNames.includes(card.name) ? '已選擇' : ''}
                   locked={locked}
                   unlockTip={unlockTip}
                   completed={completed}
                   quotaInfo={quotaInfo}
-                  onEdit={onEditCard}
-                  onToggleCustom={onToggleCustom}
+                  onEdit={isCurrentMC ? onEditCard : undefined}
+                  onToggleCustom={isCurrentMC ? onToggleCustom : undefined}
+                  isCurrentMC={isCurrentMC}
                 />
               );
             })}
