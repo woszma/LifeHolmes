@@ -106,6 +106,13 @@ function App() {
   if (eventTab === 'chain') filteredCards = chainCards;
   else if (eventTab === 'single') filteredCards = singleCards;
   else if (eventTab === 'custom') filteredCards = customCards;
+  else if (eventTab === 'special') {
+    // 顯示所有 isCustom 為 true 嘅事件
+    filteredCards = safeAllCards.filter(card => card.isCustom === true);
+  } else if (customTabs.includes(eventTab)) {
+    // 只顯示 isCustom 為 true 且 customTab 等於該 tab
+    filteredCards = safeAllCards.filter(card => card.isCustom === true && card.customTab === eventTab);
+  }
 
   // 會話管理相關函式
   const handleJoinSession = (sessionId, gameData, adminIdFromServer) => {
@@ -342,6 +349,16 @@ function App() {
     setEditingCard(card);
   };
 
+  // 去重 function
+  function dedupeEvents(events) {
+    const map = {};
+    events.forEach(e => {
+      const key = `${e.name}|||${e.customTab || ''}`;
+      map[key] = e;
+    });
+    return Object.values(map);
+  }
+
   const handleSaveCard = async (cardData) => {
     if (!currentSessionId) return;
     const res = await getSessionData(currentSessionId);
@@ -349,16 +366,17 @@ function App() {
     if (cardData.customTab && !gameData.customTabs?.includes(cardData.customTab)) {
       gameData.customTabs = [...(gameData.customTabs || []), cardData.customTab];
     }
-    const isEditing = (gameData.allCards || []).some(c => c.id === cardData.id);
-    if (isEditing) {
-      gameData.allCards = (gameData.allCards || []).map(c => c.id === cardData.id ? cardData : c);
-    } else {
-      gameData.allCards = [...(gameData.allCards || []), cardData];
-    }
+    // 強制所有經 EventEditor 儲存的事件都設 isCustom: true
+    const cardToSave = { ...cardData, isCustom: true };
+    const key = e => `${e.name}|||${e.customTab || ''}`;
+    // 先移除所有同名同 customTab 的事件
+    gameData.allCards = (gameData.allCards || []).filter(c => key(c) !== key(cardToSave));
+    // 再加返新事件
+    gameData.allCards.push(cardToSave);
     gameData.lastUpdate = new Date().toISOString();
     await updateSessionData(currentSessionId, JSON.stringify(gameData));
     setLastUpdate(gameData.lastUpdate);
-    setAllCards(gameData.allCards);
+    setAllCards(dedupeEvents(gameData.allCards));
     setCustomTabs(gameData.customTabs);
     setEditingCard(null);
   };
@@ -371,7 +389,7 @@ function App() {
     gameData.lastUpdate = new Date().toISOString();
     await updateSessionData(currentSessionId, JSON.stringify(gameData));
     setLastUpdate(gameData.lastUpdate);
-    setAllCards(gameData.allCards);
+    setAllCards(dedupeEvents(gameData.allCards));
     setEditingCard(null);
   };
 
@@ -392,7 +410,7 @@ function App() {
     gameData.lastUpdate = new Date().toISOString();
     await updateSessionData(currentSessionId, JSON.stringify(gameData));
     setLastUpdate(gameData.lastUpdate);
-    setAllCards(gameData.allCards);
+    setAllCards(dedupeEvents(gameData.allCards));
   };
 
   // 每次本地有變動時都要 setLastUpdate
@@ -450,7 +468,7 @@ function App() {
               setRoundHistory(gameData.roundHistory);
             }
             if (Array.isArray(gameData.allCards) && gameData.allCards.length > 0) {
-              setAllCards(gameData.allCards);
+              setAllCards(dedupeEvents(gameData.allCards));
             }
             if (Array.isArray(gameData.customTabs)) {
               setCustomTabs(gameData.customTabs);
@@ -560,12 +578,30 @@ function App() {
 
   // 查看排名功能，觀戰者用
   const handleViewRanking = () => {
-    const lastRound = displayData.roundHistory?.[displayData.roundHistory.length - 1];
-    if (lastRound) {
-      setTempRoundData(lastRound);
-      setShowRoundSummary(true);
-    }
+    // 直接用目前 players 狀態
+    const currentRoundData = {
+      round: currentRound,
+      playerPowers: players.map(p => ({
+        name: p.name,
+        power: p.power,
+        color: p.color
+      }))
+    };
+    setTempRoundData(currentRoundData);
+    setShowRoundSummary(true);
   };
+
+  // 合併事件及 tabs 工具函數
+  function mergeEvents(currentEvents, presetEvents) {
+    const key = e => `${e.name}|||${e.customTab || ''}`;
+    const map = {};
+    currentEvents.forEach(e => { map[key(e)] = e; });
+    presetEvents.forEach(e => { if (!map[key(e)]) map[key(e)] = e; });
+    return Object.values(map);
+  }
+  function mergeTabs(currentTabs, presetTabs) {
+    return Array.from(new Set([...(currentTabs || []), ...(presetTabs || [])]));
+  }
 
   return (
     <div className="App">
@@ -640,15 +676,16 @@ function App() {
                             <button onClick={async () => {
                               setShowPresetModal(false);
                               const res = await loadPreset(presetId); // 請確保已引入loadPreset
-                              console.log('loadPreset 回傳：', res);
                               if (res.status === 'success') {
-                                // 確保 events 是陣列
                                 const events = Array.isArray(res.data.events) ? res.data.events : [];
                                 const tabs = Array.isArray(res.data.tabs) ? res.data.tabs : [];
-                                console.log('解析後的 events:', events);
-                                console.log('解析後的 tabs:', tabs);
-                                setAllCards(events);
-                                setCustomTabs(tabs);
+                                if (window.confirm('載入預設會覆蓋你現有所有事件（包括自訂事件）。\n\n按「確定」= 完全覆蓋，按「取消」= 合併（保留現有事件並加入預設事件）')) {
+                                  setAllCards(events);
+                                  setCustomTabs(tabs);
+                                } else {
+                                  setAllCards(mergeEvents(allCards, events));
+                                  setCustomTabs(mergeTabs(customTabs, tabs));
+                                }
                               } else {
                                 alert('載入失敗：' + (res.message || '未知錯誤'));
                               }
@@ -692,10 +729,10 @@ function App() {
             <div style={{ flex: 1 }}>
               {/* 當前選擇玩家區塊，只有 MC 顯示 */}
               {isCurrentMC && (
-                <div style={{ marginBottom: 12, padding: '1em', background: '#f5f5f5', borderRadius: '8px' }}>
+              <div style={{ marginBottom: 12, padding: '1em', background: '#f5f5f5', borderRadius: '8px' }}>
                   <h3 style={{ margin: '0 0 0.5em 0' }}>當前選擇玩家：<span style={{ color: displayData.players[currentPlayer]?.color }}>{displayData.players[currentPlayer]?.name}</span></h3>
-                  <p style={{ margin: 0, color: '#666' }}>點擊其他玩家可以切換選擇</p>
-                </div>
+                <p style={{ margin: 0, color: '#666' }}>點擊其他玩家可以切換選擇</p>
+              </div>
               )}
               {/* 事件卡分類標籤（所有人都可以切換） */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap', position: 'relative' }}>
@@ -724,17 +761,46 @@ function App() {
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                <div style={{ display: 'flex', gap: 8, marginLeft: 'auto', position: 'relative' }}>
                   {isCurrentMC && (
                     <>
                       <button onClick={handleAddNewCard} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: '#4caf50', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>➕ 新增事件</button>
-                      <button
-                        onClick={() => setShowMenu(v => !v)}
-                        style={{ padding: '6px 12px', borderRadius: 20, border: 'none', background: '#eee', color: '#333', fontWeight: 600, cursor: 'pointer', fontSize: 22, lineHeight: 1 }}
-                        title="更多功能"
-                      >
-                        &#8942;
-                      </button>
+                  <button
+                    onClick={() => setShowMenu(v => !v)}
+                    style={{ padding: '6px 12px', borderRadius: 20, border: 'none', background: '#eee', color: '#333', fontWeight: 600, cursor: 'pointer', fontSize: 22, lineHeight: 1 }}
+                    title="更多功能"
+                  >
+                    &#8942;
+                  </button>
+                  {showMenu && (
+                        <div style={{
+                          position: 'absolute',
+                          top: 40,
+                          right: 0,
+                          background: '#fff',
+                          border: '1px solid #ccc',
+                          borderRadius: 8,
+                          boxShadow: '0 2px 8px #0002',
+                          zIndex: 1000,
+                          minWidth: 180,
+                          padding: 12
+                        }}>
+                          <div
+                            style={{ padding: 8, cursor: 'pointer' }}
+                            onClick={() => {
+                              setShowMenu(false);
+                              setShowSavePresetModal(true);
+                            }}
+                          >💾 儲存預設</div>
+                          <div
+                            style={{ padding: 8, cursor: 'pointer' }}
+                        onClick={() => { 
+                          setShowMenu(false); 
+                              setShowPresetModal(true);
+                        }}
+                          >📂 載入預設</div>
+                    </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -799,15 +865,16 @@ function App() {
                         <button onClick={async () => {
                           setShowPresetModal(false);
                           const res = await loadPreset(presetId); // 請確保已引入loadPreset
-                          console.log('loadPreset 回傳：', res);
                           if (res.status === 'success') {
-                            // 確保 events 是陣列
                             const events = Array.isArray(res.data.events) ? res.data.events : [];
                             const tabs = Array.isArray(res.data.tabs) ? res.data.tabs : [];
-                            console.log('解析後的 events:', events);
-                            console.log('解析後的 tabs:', tabs);
-                            setAllCards(events);
-                            setCustomTabs(tabs);
+                            if (window.confirm('載入預設會覆蓋你現有所有事件（包括自訂事件）。\n\n按「確定」= 完全覆蓋，按「取消」= 合併（保留現有事件並加入預設事件）')) {
+                              setAllCards(events);
+                              setCustomTabs(tabs);
+                            } else {
+                              setAllCards(mergeEvents(allCards, events));
+                              setCustomTabs(mergeTabs(customTabs, tabs));
+                            }
                           } else {
                             alert('載入失敗：' + (res.message || '未知錯誤'));
                           }
