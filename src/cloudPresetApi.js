@@ -11,35 +11,99 @@ export async function savePreset(presetId, data) {
 }
 
 export async function loadPreset(presetId) {
-  const res = await fetch(`${API_URL}?action=load&presetId=${encodeURIComponent(presetId)}`);
-  const data = await res.json();
-  
-  // 轉換資料結構以匹配前端期望的格式
-  if (data.status === 'success') {
-    // Google Apps Script 已經解析了 JSON，data.data 是物件
-    const presetData = data.data || {};
+  try {
+    console.log('開始載入預設:', presetId);
+    console.log('API URL:', `${API_URL}?action=load&preset_id=${encodeURIComponent(presetId)}`);
     
-    return {
-      status: 'success',
-      data: {
-        events: Array.isArray(presetData.events) ? presetData.events : [],
-        tabs: Array.isArray(presetData.tabs) ? presetData.tabs : []
+    const res = await fetch(`${API_URL}?action=load&preset_id=${encodeURIComponent(presetId)}`);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    console.log('Google Apps Script 原始回傳:', data);
+    
+    // 轉換資料結構以匹配前端期望的格式
+    if (data.status === 'success') {
+      // data.data 可能是字串或物件，需要先解析
+      let presetData;
+      if (typeof data.data === 'string') {
+        try {
+          presetData = JSON.parse(data.data);
+        } catch (e) {
+          console.error('JSON 解析錯誤:', e);
+          presetData = {};
+        }
+      } else {
+        presetData = data.data || {};
       }
+      console.log('解析後的 presetData:', presetData);
+      
+      // 檢查數據結構，支援多種可能的格式
+      let events = [];
+      let tabs = [];
+      
+      if (presetData.events && Array.isArray(presetData.events)) {
+        events = presetData.events;
+      } else if (presetData.allCards && Array.isArray(presetData.allCards)) {
+        events = presetData.allCards;
+      }
+      
+      if (presetData.tabs && Array.isArray(presetData.tabs)) {
+        tabs = presetData.tabs;
+      } else if (presetData.customTabs && Array.isArray(presetData.customTabs)) {
+        tabs = presetData.customTabs;
+      }
+      
+      console.log('轉換後的 events:', events);
+      console.log('轉換後的 tabs:', tabs);
+      
+      return {
+        status: 'success',
+        data: {
+          events: events,
+          tabs: tabs
+        }
+      };
+    }
+    return data;
+  } catch (error) {
+    console.error('loadPreset 錯誤:', error);
+    return {
+      status: 'error',
+      message: `載入失敗: ${error.message}`
     };
   }
-  return data;
 }
 
 export async function listPresets() {
-  const res = await fetch(`${API_URL}?action=list`);
-  const data = await res.json();
-  
-  // 轉換資料結構以匹配前端期望的格式
-  if (data.status === 'success') {
+  try {
+    console.log('開始獲取預設列表');
+    console.log('API URL:', `${API_URL}?action=list`);
+    
+    const res = await fetch(`${API_URL}?action=list`);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    console.log('listPresets 原始回傳:', data);
+    
+    // 轉換資料結構以匹配前端期望的格式
+    if (data.status === 'success') {
+      return {
+        status: 'success',
+        presets: data.presets || []
+      };
+    }
+    return data;
+  } catch (error) {
+    console.error('listPresets 錯誤:', error);
     return {
-      status: 'success',
-      presets: data.presets || []
+      status: 'error',
+      message: `獲取預設列表失敗: ${error.message}`
     };
   }
-  return data;
 } 

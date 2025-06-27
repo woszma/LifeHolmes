@@ -1,5 +1,5 @@
 const SPREADSHEET_ID = "1wSHfUlpzsWBVl0A9yn5AA-lgkcpy3Qmamh0DkZoKKac";
-const SHEET_NAME = "PRESET DATA";
+const SHEET_NAME = "PRESETS";
 
 // 主要處理函式 - 處理所有 HTTP 請求
 function doGet(e) {
@@ -14,7 +14,7 @@ function doGet(e) {
     
     const action = e.parameter.action;
     
-    if (action === 'getIds') {
+    if (action === 'list') {
       return handleGetIds(headers);
     } else if (action === 'load') {
       return handleLoad(e.parameter.preset_id, headers);
@@ -46,18 +46,18 @@ function doPost(e) {
       'Content-Type': 'application/json'
     };
     
-    const data = JSON.parse(e.postData.contents);
-    const presetId = data.preset_id;
-    const presetData = data.preset_data;
+    const action = e.parameter.action;
     
-    if (!presetId || !presetData) {
+    if (action === 'save') {
+      const presetId = e.parameter.presetId;
+      const data = JSON.parse(e.parameter.data);
+      return handleSave(presetId, data, headers);
+    } else {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
-        message: '缺少必要參數'
+        message: '無效的動作'
       })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
     }
-    
-    return handleSave(presetId, presetData, headers);
   } catch (error) {
     console.error('doPost 錯誤:', error);
     return ContentService.createTextOutput(JSON.stringify({
@@ -96,7 +96,7 @@ function handleGetIds(headers) {
       newSheet.getRange('A1:B1').setValues([['PRESET_ID', 'PRESET_DATA']]);
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
-        ids: []
+        presets: []
       })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
     }
     
@@ -104,15 +104,15 @@ function handleGetIds(headers) {
     if (data.length <= 1) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
-        ids: []
+        presets: []
       })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
     }
     
-    const ids = data.slice(1).map(row => row[0]).filter(id => id && id.trim() !== '');
+    const presets = data.slice(1).map(row => row[0]).filter(id => id && id.trim() !== '');
     
     return ContentService.createTextOutput(JSON.stringify({
       status: 'success',
-      ids: ids
+      presets: presets
     })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
   } catch (error) {
     console.error('handleGetIds 錯誤:', error);
@@ -161,7 +161,7 @@ function handleLoad(presetId, headers) {
         const presetData = JSON.parse(row[presetDataCol] || '{}');
         return ContentService.createTextOutput(JSON.stringify({
           status: 'success',
-          allCards: presetData.allCards || []
+          data: presetData
         })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
       }
     }

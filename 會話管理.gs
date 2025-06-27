@@ -5,13 +5,19 @@ const SPREADSHEET_ID = "1wSHfUlpzsWBVl0A9yn5AA-lgkcpy3Qmamh0DkZoKKac";
 // 在現有的 doGet 函式中新增會話相關 action
 function doGet(e) {
   try {
+    console.log('doGet 開始執行，參數:', e.parameter);
     const action = e.parameter.action;
+    console.log('action:', action);
     
     // 現有的 action
     if (action === 'list') {
+      console.log('執行 list action');
       return handleGetIds();
     } else if (action === 'load') {
-      return handleLoad(e.parameter.preset_id);
+      console.log('執行 load action');
+      const presetId = e.parameter.preset_id;
+      console.log('從參數中獲取的 preset_id:', presetId);
+      return handleLoad(presetId);
     }
     // 新增的會話相關 action
     else if (action === 'createSession') {
@@ -27,6 +33,7 @@ function doGet(e) {
     } else if (action === 'setAdmin') {
       return handleSetAdmin(e.parameter.sessionId, e.parameter.clientId, e.parameter.password);
     } else {
+      console.log('無效的 action:', action);
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '無效的動作'
@@ -68,33 +75,23 @@ function doPost(e) {
 // 創建新會話
 function handleCreateSession(createdBy, adminPassword) {
   try {
-    const sessionId = generateSessionId();
+    console.log('handleCreateSession 開始執行，參數:', { createdBy, adminPassword });
+    
+    if (!createdBy) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '缺少創建者資訊'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const currentTime = new Date().toISOString();
     
-    // 預設事件卡資料
+    // 載入預設事件卡
     const defaultCards = [
-      // 連續事件：教育路徑
-      { id: 1, name: '名牌小學', type: 'chain', group: '小學', order: 1, prerequisite: null, cost: 500, multiplier: 1.4, condition: '父或母為專業生優先' },
-      { id: 2, name: '一般小學', type: 'chain', group: '小學', order: 1, prerequisite: null, cost: 500, multiplier: 1.3 },
-      { id: 3, name: '名牌中學', type: 'chain', group: '中學', order: 2, prerequisite: '小學', cost: 500, multiplier: 1.4, condition: '須小學畢業、名牌小學畢業生優先' },
-      { id: 4, name: '一般中學', type: 'chain', group: '中學', order: 2, prerequisite: '小學', cost: 500, multiplier: 1.3, condition: '須小學畢業' },
-      { id: 5, name: '中學文憑試', type: 'chain', group: '中學文憑試', order: 3, prerequisite: '中學', cost: 500, multiplier: 1.1, condition: '須中學畢業，於30分鐘後執行，請交考試費及領取推薦證' },
-      { id: 6, name: '資助大學學士', type: 'chain', group: '大學', order: 4, prerequisite: '中學文憑試', cost: 500, multiplier: 2.0, condition: '須文憑試合格' },
-      { id: 7, name: '是旦福大學學士', type: 'chain', group: '大學', order: 4, prerequisite: '中學', cost: 3000, multiplier: 2.2, condition: '須文憑試合格或「捐款」或有海外交流經驗' },
-      { id: 8, name: "Half,Yellow, 惡忠怨、廢煙理工、Don't傾大學學士", type: 'chain', group: '大學', order: 4, prerequisite: '中學', cost: 2000, multiplier: 2.2, condition: '父或母有海外護照，文憑試不合格，預備班學費2000' },
-      // 非連續事件
-      { id: 9, name: '明愛補習社', type: 'single', group: '補習', cost: 1000, multiplier: 1.4, condition: '考試後，海關有可能會隨機抽查一人查問' },
-      { id: 10, name: '明愛補習社優質內部影片流出', type: 'single', group: '補習', cost: 200, multiplier: 1.4, condition: '如發現非法下載，留案底' },
-      { id: 11, name: '電腦/寬頻/手機電話', type: 'single', group: '設備', cost: 1000, multiplier: 1.4 },
-      { id: 12, name: '流動數據', type: 'single', group: '設備', cost: 500, multiplier: 1.2 },
-      { id: 13, name: '體育', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-      { id: 14, name: '藝術', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-      { id: 15, name: '學術', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-      { id: 16, name: '社會運動', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-      { id: 17, name: '義工服務', type: 'single', group: '課外活動', cost: 0, multiplier: 1.1, condition: '每人最多只可參加2項，請說明內容' },
-      { id: 18, name: '海外交換生計劃', type: 'single', group: '海外交換', cost: 2000, multiplier: 2.0, quota: 2, selectedPlayers: [] },
-      { id: 19, name: '擂台賽（男）', type: 'single', group: '機會', cost: 0, multiplier: 1.1, quota: 1, selectedPlayers: [] },
-      { id: 20, name: 'Sit-up（女）', type: 'single', group: '機會', cost: 0, multiplier: 1.2, quota: 1, selectedPlayers: [] },
+      { id: 'card_1', name: '努力工作', multiplier: 1.1, cost: 0, description: '努力工作提升戰鬥力' },
+      { id: 'card_2', name: '投資理財', multiplier: 1.2, cost: 1000, description: '投資理財獲得更高回報' },
+      { id: 'card_3', name: '學習進修', multiplier: 1.15, cost: 500, description: '學習新技能提升能力' }
     ];
     
     const sessionData = {
@@ -115,6 +112,8 @@ function handleCreateSession(createdBy, adminPassword) {
       adminId: '',
       adminPassword: adminPassword || 'admin1234'
     };
+    
+    console.log('準備寫入的 sessionData:', sessionData);
     
     const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
     let sheet = spreadsheet.getSheetByName(SESSION_SHEET_NAME);
@@ -138,6 +137,8 @@ function handleCreateSession(createdBy, adminPassword) {
       sessionData.adminId,
       sessionData.adminPassword
     ]);
+    
+    console.log('會話建立成功，sessionId:', sessionId);
     
     return ContentService.createTextOutput(JSON.stringify({
       status: 'success',
@@ -241,6 +242,11 @@ function handleUpdateSessionData(sessionId, gameData) {
     const sessionIdCol = headerRow.indexOf('SESSION_ID');
     const gameDataCol = headerRow.indexOf('GAME_DATA');
     const lastUpdateCol = headerRow.indexOf('LAST_UPDATE');
+    const adminPasswordCol = headerRow.indexOf('ADMIN_PASSWORD');
+    
+    // log headerRow, adminPasswordCol
+    Logger.log('headerRow: %s', headerRow);
+    Logger.log('adminPasswordCol: %s', adminPasswordCol);
     
     if (sessionIdCol === -1 || gameDataCol === -1) {
       return ContentService.createTextOutput(JSON.stringify({
@@ -256,6 +262,19 @@ function handleUpdateSessionData(sessionId, gameData) {
         // 更新會話資料
         sheet.getRange(i + 1, gameDataCol + 1).setValue(gameData);
         sheet.getRange(i + 1, lastUpdateCol + 1).setValue(new Date().toISOString());
+        
+        // 檢查遊戲數據中是否有 adminPassword，如果有則更新
+        try {
+          const parsedGameData = JSON.parse(gameData);
+          Logger.log('parsedGameData.adminPassword: %s', parsedGameData.adminPassword);
+          if (parsedGameData.adminPassword && adminPasswordCol !== -1) {
+            sheet.getRange(i + 1, adminPasswordCol + 1).setValue(parsedGameData.adminPassword);
+            Logger.log('已更新 ADMIN_PASSWORD 為: %s', parsedGameData.adminPassword);
+          }
+        } catch (e) {
+          Logger.log('解析遊戲數據失敗: %s', e);
+        }
+        
         found = true;
         break;
       }
@@ -274,7 +293,7 @@ function handleUpdateSessionData(sessionId, gameData) {
     })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
-    console.error('handleUpdateSessionData 錯誤:', error);
+    Logger.log('handleUpdateSessionData 錯誤: %s', error);
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: '更新會話資料失敗: ' + error.toString()
@@ -457,38 +476,55 @@ function handleGetIds() {
 // 載入設定檔
 function handleLoad(presetId) {
   try {
+    console.log('handleLoad 開始執行，presetId:', presetId);
+    
     if (!presetId) {
+      console.log('presetId 為空或未定義');
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '缺少設定檔 ID'
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
+    console.log('正在開啟試算表...');
     const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = spreadsheet.getSheetByName('PRESETS');
     
     if (!sheet) {
+      console.log('找不到 PRESETS 工作表');
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '找不到資料表'
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
+    console.log('正在讀取工作表資料...');
     const data = sheet.getDataRange().getValues();
+    console.log('工作表資料行數:', data.length);
+    
     const headerRow = data[0];
+    console.log('標題行:', headerRow);
+    
     const presetIdCol = headerRow.indexOf('PRESET_ID');
     const presetDataCol = headerRow.indexOf('PRESET_DATA');
     
+    console.log('PRESET_ID 欄位索引:', presetIdCol);
+    console.log('PRESET_DATA 欄位索引:', presetDataCol);
+    
     if (presetIdCol === -1 || presetDataCol === -1) {
+      console.log('找不到必要的欄位');
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '資料表格式錯誤'
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
+    console.log('正在搜尋 presetId:', presetId);
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
+      console.log('檢查第', i, '行，presetId:', row[presetIdCol]);
       if (row[presetIdCol] === presetId) {
+        console.log('找到匹配的設定檔');
         const presetData = JSON.parse(row[presetDataCol] || '{}');
         return ContentService.createTextOutput(JSON.stringify({
           status: 'success',
@@ -497,6 +533,7 @@ function handleLoad(presetId) {
       }
     }
     
+    console.log('未找到指定的設定檔');
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: '找不到指定的設定檔'
@@ -576,7 +613,7 @@ function handleSave(presetId, presetData) {
 // 設置/搶佔管理者
 function handleSetAdmin(sessionId, clientId, password) {
   try {
-    if (!sessionId || !clientId || !password) {
+    if (!sessionId || !clientId) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '缺少必要參數'
@@ -606,12 +643,23 @@ function handleSetAdmin(sessionId, clientId, password) {
       const row = data[i];
       if (row[sessionIdCol] === sessionId) {
         const currentPassword = row[adminPasswordCol];
-        if (password !== currentPassword) {
-          return ContentService.createTextOutput(JSON.stringify({
-            status: 'error',
-            message: '密碼錯誤'
-          })).setMimeType(ContentService.MimeType.JSON);
+        
+        // 如果密碼欄位為空，允許設置初始密碼
+        if (!currentPassword || currentPassword === '') {
+          if (password) {
+            // 設置初始密碼
+            sheet.getRange(i + 1, adminPasswordCol + 1).setValue(password);
+          }
+        } else {
+          // 如果已有密碼，需要驗證
+          if (!password || password !== currentPassword) {
+            return ContentService.createTextOutput(JSON.stringify({
+              status: 'error',
+              message: '密碼錯誤'
+            })).setMimeType(ContentService.MimeType.JSON);
+          }
         }
+        
         // 設置新的 adminId
         sheet.getRange(i + 1, adminIdCol + 1).setValue(clientId);
         found = true;

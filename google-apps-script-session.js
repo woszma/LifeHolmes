@@ -1,5 +1,5 @@
 // 會話管理相關常數
-const SESSION_SHEET_NAME = "GAME_SESSIONS";
+const SESSION_SHEET_NAME = "GAME SESSIONS";
 const SPREADSHEET_ID = "1wSHfUlpzsWBVl0A9yn5AA-lgkcpy3Qmamh0DkZoKKac";
 
 // 在現有的 doGet 函式中新增會話相關 action
@@ -15,7 +15,7 @@ function doGet(e) {
     const action = e.parameter.action;
     
     // 現有的 action
-    if (action === 'getIds') {
+    if (action === 'list') {
       return handleGetIds(headers);
     } else if (action === 'load') {
       return handleLoad(e.parameter.preset_id, headers);
@@ -362,4 +362,99 @@ function testSessionFunctions() {
   // 測試獲取會話列表
   const listResult = handleListActiveSessions({});
   console.log('會話列表結果:', listResult);
+}
+
+// 獲取所有設定檔 ID
+function handleGetIds(headers) {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('PRESETS');
+    
+    if (!sheet) {
+      // 如果工作表不存在，創建它
+      const newSheet = spreadsheet.insertSheet('PRESETS');
+      newSheet.getRange('A1:B1').setValues([['PRESET_ID', 'PRESET_DATA']]);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        presets: []
+      })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        presets: []
+      })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+    }
+    
+    const presets = data.slice(1).map(row => row[0]).filter(id => id && id.trim() !== '');
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'success',
+      presets: presets
+    })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+  } catch (error) {
+    console.error('handleGetIds 錯誤:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '無法讀取設定檔列表: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+  }
+}
+
+// 載入設定檔
+function handleLoad(presetId, headers) {
+  try {
+    if (!presetId) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '缺少設定檔 ID'
+      })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+    }
+    
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('PRESETS');
+    
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '找不到資料表'
+      })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headerRow = data[0];
+    const presetIdCol = headerRow.indexOf('PRESET_ID');
+    const presetDataCol = headerRow.indexOf('PRESET_DATA');
+    
+    if (presetIdCol === -1 || presetDataCol === -1) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '資料表格式錯誤'
+      })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[presetIdCol] === presetId) {
+        const presetData = JSON.parse(row[presetDataCol] || '{}');
+        return ContentService.createTextOutput(JSON.stringify({
+          status: 'success',
+          data: presetData
+        })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '找不到指定的設定檔'
+    })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+  } catch (error) {
+    console.error('handleLoad 錯誤:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '載入失敗: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON).setHeaders(headers);
+  }
 } 

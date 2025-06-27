@@ -1,4 +1,15 @@
 function StatusPanel({ players, history, currentPlayer, onSelectPlayer, onUnselectCard, isCurrentMC }) {
+  if (!players || players.length === 0) {
+    return (
+      <div style={{ minWidth: 220 }}>
+        <h2>玩家狀態</h2>
+        <div style={{ padding: 16, textAlign: 'center', color: '#666' }}>
+          沒有玩家數據
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minWidth: 220 }}>
       <h2>玩家狀態</h2>
@@ -27,10 +38,10 @@ function StatusPanel({ players, history, currentPlayer, onSelectPlayer, onUnsele
                 <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   {h.cardName} <span style={{ color: '#333', fontSize: '0.95em' }}>x{h.multiplier ?? 1}</span>
                   {isCurrentMC && onUnselectCard && (
-                    <button
-                      style={{ marginLeft: 6, fontSize: '0.85em', color: '#E91E63', border: 'none', background: 'none', cursor: 'pointer' }}
-                      onClick={e => { e.stopPropagation(); onUnselectCard(idx, h.cardName); }}
-                    >取消</button>
+                  <button
+                    style={{ marginLeft: 6, fontSize: '0.85em', color: '#E91E63', border: 'none', background: 'none', cursor: 'pointer' }}
+                    onClick={e => { e.stopPropagation(); onUnselectCard(idx, h.cardId); }}
+                  >取消</button>
                   )}
                 </li>
               ))}

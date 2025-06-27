@@ -60,6 +60,7 @@ function parseCSV(csvText) {
 
 function CharacterSetup({ onStart, onLoadPreset }) {
   const [players, setPlayers] = useState(DEFAULT_PLAYERS);
+  const [adminPassword, setAdminPassword] = useState('');
 
   const handleChange = (idx, field, value) => {
     const newPlayers = [...players];
@@ -153,13 +154,48 @@ function CharacterSetup({ onStart, onLoadPreset }) {
         power: Number(p.power),
         color: THEME_COLORS[i % THEME_COLORS.length],
       }));
-      onStart(playersWithColor);
+      onStart(playersWithColor, adminPassword);
     }
   };
 
   return (
     <div className="character-setup">
       <h2>建立你的角色（可多位玩家）</h2>
+      
+      {/* Admin密碼設置 */}
+      <div style={{ 
+        marginBottom: 20, 
+        padding: '16px', 
+        background: '#fff3e0', 
+        borderRadius: '8px',
+        border: '1px solid #ffb74d'
+      }}>
+        <h3 style={{ margin: '0 0 12px 0', color: '#e65100' }}>🔐 管理員密碼設置</h3>
+        <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: '14px' }}>
+          設置管理員密碼，只有知道密碼的人才能成為遊戲管理者（MC）
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontWeight: 600, color: '#e65100' }}>管理員密碼：</span>
+            <input
+              type="password"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              placeholder="請輸入管理員密碼"
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '14px',
+                minWidth: '200px'
+              }}
+            />
+          </label>
+        </div>
+        <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '12px' }}>
+          💡 提示：密碼用於驗證管理員身份，建議設置一個容易記住的密碼
+        </p>
+      </div>
       
       {/* 載入預設功能 */}
       {onLoadPreset && (
