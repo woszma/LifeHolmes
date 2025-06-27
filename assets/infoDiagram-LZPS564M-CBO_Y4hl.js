@@ -1,0 +1,3 @@
+import{_ as e,l as s,H as n,e as i,I as p}from"./index-CkAiJf5-.js";import{p as g}from"./radar-VG2SY3DT-CNmMwwml.js";import"./_baseUniq-D9h_d6QP.js";import"./_basePickBy-Cys5rFD3.js";import"./clone-Cmgrli9F.js";var v={parse:e(async r=>{const a=await g("info",r);s.debug(a)},"parse")},d={version:p.version+""},m=e(()=>d.version,"getVersion"),c={getVersion:m},l=e((r,a,o)=>{s.debug(`rendering info diagram
+`+r);const t=n(a);i(t,100,400,!0),t.append("g").append("text").attr("x",100).attr("y",40).attr("class","version").attr("font-size",32).style("text-anchor","middle").text(`v${o}`)},"draw"),f={draw:l},S={parser:v,db:c,renderer:f};export{S as diagram};
+//# sourceMappingURL=infoDiagram-LZPS564M-CBO_Y4hl.js.map
