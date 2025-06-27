@@ -89,6 +89,34 @@ function App() {
   const [pendingPresetData, setPendingPresetData] = useState(null);
   const [pendingPresetId, setPendingPresetId] = useState('');
 
+  // 生成觀看者網址
+  const generateViewerUrl = (sessionId) => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const viewerUrl = `${baseUrl}?viewer=${sessionId}`;
+    console.log('生成觀看者網址:', { baseUrl, sessionId, viewerUrl });
+    return viewerUrl;
+  };
+
+  // 複製到剪貼板
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setSaveTip('觀看者網址已複製到剪貼板！');
+      setTimeout(() => setSaveTip(''), 3000);
+    } catch (err) {
+      console.error('複製失敗:', err);
+      // 降級方案：使用傳統方法
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setSaveTip('觀看者網址已複製到剪貼板！');
+      setTimeout(() => setSaveTip(''), 3000);
+    }
+  };
+
   // 頁面載入時清理 localStorage 中的 pendingSessionName
   useEffect(() => {
     const pendingSessionName = localStorage.getItem('pendingSessionName');
@@ -1224,8 +1252,19 @@ function App() {
                       <button onClick={handleAddNewCard} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: '#4caf50', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>➕ 新增事件</button>
                       {/* 表格選取事件按鈕 */}
                       <button onClick={() => setShowTableSelect(true)} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>🗂️ 表格選取事件</button>
-                      {/* 切換成觀看者按鈕 */}
-                      <button onClick={() => setAdminId('')} style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: '#ff9800', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>👀 切換成觀看者</button>
+                      {/* 複製觀看者網址按鈕 */}
+                      <button 
+                        onClick={() => {
+                          if (currentSessionId) {
+                            const viewerUrl = generateViewerUrl(currentSessionId);
+                            copyToClipboard(viewerUrl);
+                          }
+                        }} 
+                        style={{ padding: '6px 18px', borderRadius: 20, border: 'none', background: '#ff9800', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                        title="複製觀看者網址到剪貼板"
+                      >
+                        🔗 複製觀看者網址
+                      </button>
                   <button
                     onClick={() => setShowMenu(v => !v)}
                     style={{ padding: '6px 12px', borderRadius: 20, border: 'none', background: '#eee', color: '#333', fontWeight: 600, cursor: 'pointer', fontSize: 22, lineHeight: 1 }}
