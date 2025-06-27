@@ -1,3 +1,0 @@
-import{_ as e,l as s,H as n,e as i,I as p}from"./index-Ca2wx9i8.js";import{p as g}from"./radar-VG2SY3DT-CR_RCHux.js";import"./_baseUniq-DCEqy_tk.js";import"./_basePickBy-DVpxNeHx.js";import"./clone-CZX7ri0R.js";var v={parse:e(async r=>{const a=await g("info",r);s.debug(a)},"parse")},d={version:p.version+""},m=e(()=>d.version,"getVersion"),c={getVersion:m},l=e((r,a,o)=>{s.debug(`rendering info diagram
-`+r);const t=n(a);i(t,100,400,!0),t.append("g").append("text").attr("x",100).attr("y",40).attr("class","version").attr("font-size",32).style("text-anchor","middle").text(`v${o}`)},"draw"),f={draw:l},S={parser:v,db:c,renderer:f};export{S as diagram};
-//# sourceMappingURL=infoDiagram-LZPS564M-DOlFJB-m.js.map
