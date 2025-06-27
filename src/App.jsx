@@ -711,17 +711,21 @@ function App() {
     // 強制所有經 EventEditor 儲存的事件都設 isCustom: true
     const cardToSave = { ...cardData, isCustom: true };
     
+    // 修正：如果冇 id，生成更保險的唯一 id
+    if (!cardToSave.id) {
+      const timestamp = Date.now();
+      const rand1 = Math.random().toString(36).substr(2, 9);
+      const rand2 = Math.random().toString(36).substr(2, 9);
+      cardToSave.id = `custom_${timestamp}_${rand1}_${rand2}`;
+    }
+    
     // 如果有 ID，使用 ID 來更新；如果沒有 ID，使用名稱和 customTab
-    if (cardToSave.id) {
+    if (cardToSave.id && currentAllCards.some(c => c.id === cardToSave.id)) {
       // 使用 ID 更新現有事件
       currentAllCards = currentAllCards.map(c => 
         c.id === cardToSave.id ? cardToSave : c
       );
     } else {
-      // 為新事件生成唯一 ID
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substr(2, 9);
-      cardToSave.id = `custom_${timestamp}_${random}`;
       currentAllCards.push(cardToSave);
     }
     
